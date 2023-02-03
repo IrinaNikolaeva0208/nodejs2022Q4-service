@@ -14,7 +14,6 @@ export class UsersController {
        return this.userService.findAll();
     }
 
-
     @Get(":id")
     async getUserById(@Param() params) {
         if(!validate(params.id)) throw new HttpException("Invalid ID", HttpStatus.BAD_REQUEST);
@@ -24,14 +23,14 @@ export class UsersController {
     }
 
     @Post()
-    createUser(@Body() createUserDto) {
+    async createUser(@Body() createUserDto) {
         const dtoKeys = Object.keys(createUserDto);
-        if(!["login", "password"].every(field => dtoKeys.includes(field)) || dtoKeys.length != 2) throw new HttpException("Invalid data", HttpStatus.BAD_REQUEST);
+        //if(!(createUserDto as CreateUserDto).type) throw new HttpException("Invalid data", HttpStatus.BAD_REQUEST);
         return this.userService.create(createUserDto);
     }
 
     @Put(":id")
-    updatePassword(@Body() updatePasswordDto, @Param() params) {
+    async updatePassword(@Body() updatePasswordDto, @Param() params) {
         const dtoKeys = Object.keys(updatePasswordDto);
         if(!["oldPassword", "newPassword"].every(field => dtoKeys.includes(field)) || dtoKeys.length != 2) throw new HttpException("Invalid data", HttpStatus.BAD_REQUEST);
         if(!validate(params.id)) throw new HttpException("Invalid ID", HttpStatus.BAD_REQUEST);

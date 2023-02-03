@@ -1,4 +1,4 @@
-import { Injectable, HttpCode } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { User } from "./interfaces/user.interface";
 import { v4 } from "uuid";
 import { CreateUserDto } from "./dto/createUser.dto";
@@ -9,7 +9,14 @@ export class UserService {
     private readonly users: User[] = [];
 
     findAll() {
-        return this.users;
+        return this.users.map(user =>{
+            return {
+            id: user.id,
+            login: user.login,
+            version: user.version,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt
+        }});
     }
 
     findOne(id: string) {
@@ -31,8 +38,8 @@ export class UserService {
         const id = v4();
         const version = 1;
         let newUser : User = {
-            ...dto,
             id: id,
+            ...dto,
             version: version,
             createdAt: timestamp,
             updatedAt: timestamp
