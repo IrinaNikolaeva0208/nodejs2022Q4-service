@@ -1,5 +1,5 @@
 export interface AlbumDto {
-    name: string;
-    year: number;
-    artistId: string | null; 
+  name: string;
+  year: number;
+  artistId: string | null;
 }

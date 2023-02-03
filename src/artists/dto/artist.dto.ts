@@ -1,4 +1,4 @@
 export interface ArtistDto {
-    name: string;
-    grammy: boolean;
+  name: string;
+  grammy: boolean;
 }
