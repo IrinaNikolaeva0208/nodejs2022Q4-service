@@ -1,4 +1,4 @@
-export default function isValidArtistDto(dto) {
+export default function isValidArtistDto(dto: any) {
   return (
     dto &&
     'name' in dto &&
