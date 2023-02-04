@@ -15,11 +15,11 @@ import { Service } from './service';
 export class EntityController<Serv extends Service> {
   constructor(protected service: Serv) {}
 
-  isValidCreateDto(dto) {
+  isValidCreateDto(dto: any) {
     return false;
   }
 
-  isValidUpdateDto(dto) {
+  isValidUpdateDto(dto: any) {
     return false;
   }
 
