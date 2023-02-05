@@ -16,11 +16,11 @@ export class EntityController<Serv extends Service> {
   constructor(protected service: Serv) {}
 
   isValidCreateDto(dto: any) {
-    return false;
+    return !!dto;
   }
 
   isValidUpdateDto(dto: any) {
-    return false;
+    return !!dto;
   }
 
   @Get()

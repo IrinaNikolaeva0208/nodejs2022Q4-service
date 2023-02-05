@@ -317,7 +317,7 @@ paths:
       tags:
         - Track
       summary: Update track information
-      description: Update library track information by UUID
+      description: Update library track information by id
       requestBody:
         required: true
         content:
@@ -463,7 +463,7 @@ paths:
       tags:
         - Album
       summary: Update album information
-      description: Update library album information by UUID
+      description: Update library album information by id
       requestBody:
         required: true
         content:
@@ -577,7 +577,7 @@ paths:
       tags:
         - Artist
       summary: Update artist information
-      description: Update artist information by UUID
+      description: Update artist information by id
       requestBody:
         required: true
         content:
@@ -620,7 +620,7 @@ paths:
       tags:
         - Favorites
       summary: Get all favorites
-      description: Gets all favorites movies, tracks and books
+      description: Gets all favorites artists, tracks and albums
       responses:
         200:
           description: Successful operation

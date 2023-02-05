@@ -1,7 +1,6 @@
-import { Controller, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { EntityController } from 'src/utils/classes/controller';
 import { ArtistService } from './artists.service';
-import { validate } from 'uuid';
 import isValidArtistDto from './dto/validateDto';
 
 @Controller('artist')
