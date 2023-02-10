@@ -9,8 +9,8 @@ export interface Database {
   tracks: Track[];
   albums: Album[];
   favourites: {
-    artists: Artist[];
-    tracks: Track[];
-    albums: Album[];
+    artists: string[];
+    tracks: string[];
+    albums: string[];
   };
 }
