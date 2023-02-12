@@ -1,24 +1,51 @@
-import { Injectable } from '@nestjs/common';
-import { Service } from 'src/utils/classes/service';
+import { Injectable, Inject } from '@nestjs/common';
 import db from 'src/utils/database/DB';
-import deleteEntitiesContainingId from 'src/utils/functions/deleteEntitiesContainigId';
 import { Artist } from './interfaces/artist.interface';
-import setIdToNull from 'src/utils/functions/setIdtoNull';
+import { ArtistDto } from './dto/artist.dto';
+import { randomUUID } from 'crypto';
+import { TrackService } from 'src/tracks/tracks.service';
+import { AlbumService } from 'src/albums/albums.service';
+import { FavsService } from 'src/favourites/favs.service';
 
 @Injectable()
-export class ArtistService extends Service {
-  route = 'artists';
+export class ArtistService {
+  constructor(
+    private trackService: TrackService,
+    private albumService: AlbumService,
+    private favsService: FavsService,
+  ) {}
 
-  delete(id: string) {
-    const artistToDelete = db[this.route].find((item) => item.id == id);
+  findAll(): Artist[] {
+    return db.artists;
+  }
+
+  findOne(id: string): Artist {
+    return db.artists.find((item) => item.id == id);
+  }
+
+  create(dto: ArtistDto): Artist {
+    const id = randomUUID();
+    const newArtist = {
+      ...dto,
+      id: id,
+    };
+    db.artists.push(newArtist);
+    return newArtist;
+  }
+
+  change(id: string, dto: ArtistDto): Artist {
+    let artistToUpdate = db.artists.find((item) => item.id == id);
+    if (artistToUpdate) artistToUpdate = { ...dto, id };
+    return artistToUpdate;
+  }
+
+  delete(id: string): Artist {
+    const artistToDelete = db.artists.find((item) => item.id == id);
     if (artistToDelete) {
-      deleteEntitiesContainingId<Artist>(
-        db[this.route],
-        db.favourites[this.route],
-        artistToDelete,
-      );
-      setIdToNull(db.albums, id, 'artistId');
-      setIdToNull(db.tracks, id, 'artistId');
+      db.artists.splice(db.artists.indexOf(artistToDelete));
+      this.favsService.handleArtistDeletion(id);
+      this.trackService.handleArtistDeletion(id);
+      this.albumService.handleArtistDeletion(id);
     }
     return artistToDelete;
   }

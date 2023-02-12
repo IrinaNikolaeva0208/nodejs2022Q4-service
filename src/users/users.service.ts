@@ -8,10 +8,8 @@ import db from 'src/utils/database/DB';
 
 @Injectable()
 export class UserService extends Service {
-  route = 'users';
-
   findAll() {
-    return db[this.route].map((user) => {
+    return db.users.map((user) => {
       return {
         id: user.id,
         login: user.login,
@@ -23,7 +21,7 @@ export class UserService extends Service {
   }
 
   findOne(id: string) {
-    const userToGet = db[this.route].find((user) => user.id == id);
+    const userToGet = db.users.find((user) => user.id == id);
     if (userToGet) {
       return {
         id: id,
@@ -47,7 +45,7 @@ export class UserService extends Service {
       createdAt: timestamp,
       updatedAt: timestamp,
     };
-    db[this.route].push(newUser);
+    db.users.push(newUser);
     return {
       id: id,
       login: newUser.login,
@@ -58,7 +56,7 @@ export class UserService extends Service {
   }
 
   change(id: string, dto: UpdatePasswordDto) {
-    const userToUpdate = db[this.route].find((user) => user.id == id);
+    const userToUpdate = db.users.find((user) => user.id == id);
     if (userToUpdate) {
       if (userToUpdate.password != dto.oldPassword) throw new Error();
       userToUpdate.password = dto.newPassword;
@@ -73,5 +71,11 @@ export class UserService extends Service {
       };
     }
     return userToUpdate;
+  }
+
+  delete(id: string): User {
+    const userToDelete = db.users.find((item) => item.id == id);
+    if (userToDelete) db.users.splice(db.users.indexOf(userToDelete));
+    return userToDelete;
   }
 }
