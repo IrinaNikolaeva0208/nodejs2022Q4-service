@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import db from 'src/utils/database/DB';
+import db from 'src/database/DB';
 
 @Injectable()
 export class FavsService {

@@ -1,6 +1,6 @@
-import { Injectable, Inject } from '@nestjs/common';
-import db from 'src/utils/database/DB';
-import { Track } from './interfaces/track.interface';
+import { Injectable } from '@nestjs/common';
+import db from 'src/database/DB';
+import { Track } from './entities/track.entity';
 import { randomUUID } from 'crypto';
 import { TrackDto } from './dto/track.dto';
 import { FavsService } from 'src/favourites/favs.service';

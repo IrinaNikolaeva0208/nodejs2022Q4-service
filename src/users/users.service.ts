@@ -1,13 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { User } from './interfaces/user.interface';
+import { User } from './entities/user.entity';
 import { v4 } from 'uuid';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdatePasswordDto } from './dto/updatePassword.dto';
-import { Service } from 'src/utils/classes/service';
-import db from 'src/utils/database/DB';
+import db from 'src/database/DB';
 
 @Injectable()
-export class UserService extends Service {
+export class UserService {
   findAll() {
     return db.users.map((user) => {
       return {
