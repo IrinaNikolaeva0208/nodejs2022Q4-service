@@ -7,7 +7,6 @@ import {
   Delete,
   Param,
   HttpStatus,
-  HttpException,
   HttpCode,
   ParseUUIDPipe,
 } from '@nestjs/common';
@@ -26,14 +25,12 @@ export class UsersController {
 
   @Get(':id')
   async getUserById(@Param('id', new ParseUUIDPipe()) id: string) {
-    const userToGet = this.service.findOne(id);
-    if (!userToGet) throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
-    return userToGet;
+    return await this.service.findOne(id);
   }
 
   @Post()
   async createUser(@Body() createDto: CreateUserDto) {
-    return this.service.create(createDto);
+    return await this.service.create(createDto);
   }
 
   @Put(':id')
@@ -41,22 +38,12 @@ export class UsersController {
     @Body() updateDto: UpdatePasswordDto,
     @Param('id', new ParseUUIDPipe()) id: string,
   ) {
-    let userToUpdate;
-    try {
-      userToUpdate = this.service.change(id, updateDto);
-    } catch (err) {
-      throw new HttpException('Wrong password', HttpStatus.FORBIDDEN);
-    }
-    if (!userToUpdate)
-      throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
-    return userToUpdate;
+    return await this.service.update(id, updateDto);
   }
 
   @Delete(':id')
-  @HttpCode(204)
+  @HttpCode(HttpStatus.NO_CONTENT)
   async deleteUser(@Param('id', new ParseUUIDPipe()) id: string) {
-    const userToDelete = this.service.delete(id);
-    if (!userToDelete)
-      throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
+    await this.service.delete(id);
   }
 }

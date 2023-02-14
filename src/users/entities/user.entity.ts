@@ -1,8 +1,8 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class User {
-  @PrimaryColumn('uuid')
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
@@ -14,9 +14,14 @@ export class User {
   @Column()
   version: number;
 
-  @Column()
+  @Column({ type: 'bigint' })
   createdAt: number;
 
-  @Column()
+  @Column({ type: 'bigint' })
   updatedAt: number;
+
+  toResponse() {
+    const { id, login, version, createdAt, updatedAt } = this;
+    return { id, login, version, createdAt, updatedAt };
+  }
 }
