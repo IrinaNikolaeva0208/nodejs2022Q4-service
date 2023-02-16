@@ -6,7 +6,6 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
-  HttpException,
   Param,
   Body,
   ParseUUIDPipe,
@@ -25,10 +24,7 @@ export class ArtistsController {
 
   @Get(':id')
   async getArtistById(@Param('id', new ParseUUIDPipe()) id: string) {
-    const artistToGet = this.service.findOne(id);
-    if (!artistToGet)
-      throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
-    return artistToGet;
+    return this.service.findOne(id);
   }
 
   @Post()
@@ -41,17 +37,12 @@ export class ArtistsController {
     @Body() updateDto: ArtistDto,
     @Param('id', new ParseUUIDPipe()) id: string,
   ) {
-    const artistToUpdate = this.service.change(id, updateDto);
-    if (!artistToUpdate)
-      throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
-    return artistToUpdate;
+    return this.service.update(id, updateDto);
   }
 
   @Delete(':id')
-  @HttpCode(204)
+  @HttpCode(HttpStatus.NO_CONTENT)
   async deleteArtist(@Param('id', new ParseUUIDPipe()) id: string) {
-    const artistToDelete = this.service.delete(id);
-    if (!artistToDelete)
-      throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
+    await this.service.delete(id);
   }
 }

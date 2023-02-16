@@ -25,9 +25,7 @@ export class AlbumsController {
 
   @Get(':id')
   async getAlbumById(@Param('id', new ParseUUIDPipe()) id: string) {
-    const albumToGet = this.service.findOne(id);
-    if (!albumToGet) throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
-    return albumToGet;
+    return this.service.findOne(id);
   }
 
   @Post()
@@ -40,17 +38,12 @@ export class AlbumsController {
     @Body() updateDto: AlbumDto,
     @Param('id', new ParseUUIDPipe()) id: string,
   ) {
-    const albumToUpdate = this.service.change(id, updateDto);
-    if (!albumToUpdate)
-      throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
-    return albumToUpdate;
+    return this.service.update(id, updateDto);
   }
 
   @Delete(':id')
   @HttpCode(204)
   async deleteAlbum(@Param('id', new ParseUUIDPipe()) id: string) {
-    const albumToDelete = this.service.delete(id);
-    if (!albumToDelete)
-      throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
+    await this.service.delete(id);
   }
 }
