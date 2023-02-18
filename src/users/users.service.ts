@@ -8,7 +8,6 @@ import { CreateUserDto } from './dto/createUser.dto';
 import { UpdatePasswordDto } from './dto/updatePassword.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { randomUUID } from 'crypto';
 
 @Injectable()
 export class UserService {
@@ -31,10 +30,8 @@ export class UserService {
 
   async create(dto: CreateUserDto) {
     const timestamp = Date.now();
-    const id = randomUUID();
     const version = 1;
     const newUser = {
-      id: id,
       ...dto,
       version: version,
       createdAt: timestamp,

@@ -8,6 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Track } from 'src/tracks/entities/track.entity';
+import { Favourites } from 'src/favourites/entities/favs.entity';
 
 @Entity()
 export class Album {
@@ -32,4 +33,8 @@ export class Album {
 
   @OneToMany(() => Track, (track) => track.album)
   tracks: Track[];
+
+  @ManyToOne(() => Favourites, (favs) => favs.albums)
+  @JoinColumn()
+  favs: Favourites;
 }

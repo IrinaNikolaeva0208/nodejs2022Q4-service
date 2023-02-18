@@ -4,6 +4,7 @@ import { User } from 'src/users/entities/user.entity';
 import { Artist } from 'src/artists/entities/artist.entity';
 import { Track } from 'src/tracks/entities/track.entity';
 import { Album } from 'src/albums/entities/album.entity';
+import { Favourites } from 'src/favourites/entities/favs.entity';
 
 dotenv.config();
 
@@ -14,7 +15,7 @@ const options: DataSourceOptions = {
   username: process.env.POSTGRES_USER,
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_DATABASE,
-  entities: [User, Artist, Album, Track],
+  entities: [User, Artist, Album, Track, Favourites],
   synchronize: true,
 };
 

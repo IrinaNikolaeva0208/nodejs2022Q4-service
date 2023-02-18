@@ -1,13 +1,19 @@
-import { Column, Entity } from 'typeorm';
+import { Album } from 'src/albums/entities/album.entity';
+import { Artist } from 'src/artists/entities/artist.entity';
+import { Track } from 'src/tracks/entities/track.entity';
+import { Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Favourites {
-  @Column()
-  tracks: string[];
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column()
-  artists: string[];
+  @OneToMany(() => Track, (track) => track.favs)
+  tracks: Track[];
 
-  @Column()
-  albums: string[];
+  @OneToMany(() => Artist, (artist) => artist.favs)
+  artists: Artist[];
+
+  @OneToMany(() => Album, (album) => album.favs)
+  albums: Album[];
 }

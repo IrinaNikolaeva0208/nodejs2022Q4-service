@@ -1,8 +1,6 @@
-import { Injectable, NotFoundException, HttpException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Artist } from './entities/artist.entity';
 import { ArtistDto } from './dto/artist.dto';
-import { randomUUID } from 'crypto';
-import { FavsService } from 'src/favourites/favs.service';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -11,8 +9,12 @@ export class ArtistService {
   constructor(
     @InjectRepository(Artist)
     private artistRepository: Repository<Artist>,
-    private favsService: FavsService,
   ) {}
+
+  async findArtistToFavs(artistId: string) {
+    const artist = await this.artistRepository.findOneBy({ id: artistId });
+    return artist;
+  }
 
   async findAll() {
     return await this.artistRepository.find();
@@ -28,13 +30,7 @@ export class ArtistService {
   }
 
   async create(dto: ArtistDto) {
-    const id = randomUUID();
-    const newArtist = {
-      ...dto,
-      id: id,
-    };
-
-    const createdArtist = this.artistRepository.create(newArtist);
+    const createdArtist = this.artistRepository.create(dto);
     return await this.artistRepository.save(createdArtist);
   }
 
@@ -44,7 +40,7 @@ export class ArtistService {
     });
 
     if (artistToUpdate) {
-      for (let key in dto) artistToUpdate[key] = dto[key];
+      for (const key in dto) artistToUpdate[key] = dto[key];
       return await this.artistRepository.save(artistToUpdate);
     }
 

@@ -1,8 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Track } from './entities/track.entity';
-import { randomUUID } from 'crypto';
 import { TrackDto } from './dto/track.dto';
-import { FavsService } from 'src/favourites/favs.service';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -11,8 +9,12 @@ export class TrackService {
   constructor(
     @InjectRepository(Track)
     private trackRepository: Repository<Track>,
-    private favsService: FavsService,
   ) {}
+
+  async findTrackToFavs(trackId: string) {
+    const track = await this.trackRepository.findOneBy({ id: trackId });
+    return track;
+  }
 
   async findAll() {
     return await this.trackRepository.find();
@@ -29,13 +31,7 @@ export class TrackService {
   }
 
   async create(dto: TrackDto) {
-    const id = randomUUID();
-    const newTrack = {
-      ...dto,
-      id: id,
-    };
-
-    const createdTrack = this.trackRepository.create(newTrack);
+    const createdTrack = this.trackRepository.create(dto);
     return await this.trackRepository.save(createdTrack);
   }
 
@@ -45,7 +41,7 @@ export class TrackService {
     });
 
     if (trackToUpdate) {
-      for (let key in dto) trackToUpdate[key] = dto[key];
+      for (const key in dto) trackToUpdate[key] = dto[key];
       return await this.trackRepository.save(trackToUpdate);
     }
 

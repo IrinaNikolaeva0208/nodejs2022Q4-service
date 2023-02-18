@@ -3,8 +3,6 @@ import {
   Get,
   Post,
   Delete,
-  HttpException,
-  HttpStatus,
   ParseUUIDPipe,
   Param,
 } from '@nestjs/common';
@@ -16,102 +14,36 @@ export class FavsController {
 
   @Get()
   async getFavs() {
-    return this.service.findAllFavs();
+    return await this.service.findAllFavs();
   }
 
   @Post('track/:id')
   async addTrackToFavs(@Param('id', new ParseUUIDPipe()) id: string) {
-    try {
-      this.service.addTrackToFavs(id);
-    } catch (err) {
-      throw new HttpException(
-        'Source does not exist',
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
-    }
-    throw new HttpException(
-      'Successfully added to favourites',
-      HttpStatus.CREATED,
-    );
+    await this.service.addTrackToFavs(id);
   }
 
   @Delete('track/:id')
   async deleteTrackFromFavs(@Param('id', new ParseUUIDPipe()) id: string) {
-    try {
-      this.service.deleteTrackFromFavs(id);
-    } catch (err) {
-      throw new HttpException(
-        'Source not found in favorites',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-    throw new HttpException(
-      'Successfully deleted from favourites',
-      HttpStatus.NO_CONTENT,
-    );
+    await this.service.deleteTrackFromFavs(id);
   }
 
   @Post('artist/:id')
   async addArtistToFavs(@Param('id', new ParseUUIDPipe()) id: string) {
-    try {
-      this.service.addArtistToFavs(id);
-    } catch (err) {
-      throw new HttpException(
-        'Source does not exist',
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
-    }
-    throw new HttpException(
-      'Successfully added to favourites',
-      HttpStatus.CREATED,
-    );
+    await this.service.addArtistToFavs(id);
   }
 
   @Delete('artist/:id')
   async deleteArtistFromFavs(@Param('id', new ParseUUIDPipe()) id: string) {
-    try {
-      this.service.deleteArtistFromFavs(id);
-    } catch (err) {
-      throw new HttpException(
-        'Source not found in favorites',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-    throw new HttpException(
-      'Successfully deleted from favourites',
-      HttpStatus.NO_CONTENT,
-    );
+    await this.service.deleteArtistFromFavs(id);
   }
 
   @Post('album/:id')
   async addAlbumToFavs(@Param('id', new ParseUUIDPipe()) id: string) {
-    try {
-      this.service.addAlbumToFavs(id);
-    } catch (err) {
-      throw new HttpException(
-        'Source does not exist',
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
-    }
-    throw new HttpException(
-      'Successfully added to favourites',
-      HttpStatus.CREATED,
-    );
+    await this.service.addAlbumToFavs(id);
   }
 
   @Delete('album/:id')
   async deleteAlbumFromFavs(@Param('id', new ParseUUIDPipe()) id: string) {
-    try {
-      this.service.deleteAlbumFromFavs(id);
-    } catch (err) {
-      throw new HttpException(
-        'Source not found in favorites',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-    throw new HttpException(
-      'Successfully deleted from favourites',
-      HttpStatus.NO_CONTENT,
-    );
+    await this.service.deleteAlbumFromFavs(id);
   }
 }

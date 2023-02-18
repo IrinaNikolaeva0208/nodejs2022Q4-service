@@ -1,8 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Album } from './entities/album.entity';
 import { AlbumDto } from './dto/album.dto';
-import { randomUUID } from 'crypto';
-import { FavsService } from 'src/favourites/favs.service';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -11,8 +9,12 @@ export class AlbumService {
   constructor(
     @InjectRepository(Album)
     private albumRepository: Repository<Album>,
-    private favsService: FavsService,
   ) {}
+
+  async findAlbumToFavs(albumId: string) {
+    const album = await this.albumRepository.findOneBy({ id: albumId });
+    return album;
+  }
 
   async findAll() {
     return await this.albumRepository.find();
@@ -29,13 +31,7 @@ export class AlbumService {
   }
 
   async create(dto: AlbumDto) {
-    const id = randomUUID();
-    const newAlbum = {
-      ...dto,
-      id: id,
-    };
-
-    const createdAlbum = this.albumRepository.create(newAlbum);
+    const createdAlbum = this.albumRepository.create(dto);
     return await this.albumRepository.save(createdAlbum);
   }
 
@@ -45,7 +41,7 @@ export class AlbumService {
     });
 
     if (albumToUpdate) {
-      for (let key in dto) albumToUpdate[key] = dto[key];
+      for (const key in dto) albumToUpdate[key] = dto[key];
       return await this.albumRepository.save(albumToUpdate);
     }
 

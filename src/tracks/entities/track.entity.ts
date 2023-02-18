@@ -1,5 +1,6 @@
 import { Album } from 'src/albums/entities/album.entity';
 import { Artist } from 'src/artists/entities/artist.entity';
+import { Favourites } from 'src/favourites/entities/favs.entity';
 import {
   Entity,
   Column,
@@ -38,4 +39,8 @@ export class Track {
   })
   @JoinColumn({ name: 'albumId' })
   album: Album;
+
+  @ManyToOne(() => Favourites, (favs) => favs.tracks)
+  @JoinColumn()
+  favs: Favourites;
 }

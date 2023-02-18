@@ -6,9 +6,7 @@ import {
   Post,
   Put,
   Delete,
-  HttpException,
   HttpCode,
-  HttpStatus,
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { AlbumService } from './albums.service';

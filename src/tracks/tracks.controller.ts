@@ -4,10 +4,8 @@ import {
   Post,
   Put,
   Delete,
-  HttpStatus,
   Param,
   Body,
-  HttpException,
   HttpCode,
   ParseUUIDPipe,
 } from '@nestjs/common';
