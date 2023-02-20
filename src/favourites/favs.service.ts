@@ -15,8 +15,14 @@ export class FavsService {
     private artistService: ArtistService,
     private trackService: TrackService,
   ) {
-    const favs = this.favsRepository.create();
-    this.favsRepository.save(favs);
+    const createIfDoesNotExist = async () => {
+      const favs = await this.favsRepository.find();
+      if (!favs.length) {
+        const newFavs = this.favsRepository.create();
+        await this.favsRepository.save(newFavs);
+      }
+    };
+    createIfDoesNotExist();
   }
 
   async findAllFavs() {
@@ -48,7 +54,8 @@ export class FavsService {
     const album = await this.albumService.findAlbumToFavs(id);
     if (!album)
       throw new HttpException('Album not found', HttpStatus.NOT_FOUND);
-    favs.albums.splice(favs.albums.indexOf(album));
+    const albumIndex = favs.albums.findIndex((item) => item.id == album.id);
+    favs.albums.splice(albumIndex, 1);
     await this.favsRepository.save(favs);
     throw new HttpException(
       'Successfully deleted from Favourites',
@@ -77,7 +84,8 @@ export class FavsService {
     const artist = await this.artistService.findArtistToFavs(id);
     if (!artist)
       throw new HttpException('Artist not found', HttpStatus.NOT_FOUND);
-    favs.artists.splice(favs.artists.indexOf(artist));
+    const artistIndex = favs.artists.findIndex((item) => item.id == artist.id);
+    favs.artists.splice(artistIndex, 1);
     await this.favsRepository.save(favs);
     throw new HttpException(
       'Successfully deleted from Favourites',
@@ -106,7 +114,8 @@ export class FavsService {
     const track = await this.trackService.findTrackToFavs(id);
     if (!track)
       throw new HttpException('Track not found', HttpStatus.NOT_FOUND);
-    favs.tracks.splice(favs.tracks.indexOf(track));
+    const trackIndex = favs.tracks.findIndex((item) => item.id == track.id);
+    favs.tracks.splice(trackIndex, 1);
     await this.favsRepository.save(favs);
     throw new HttpException(
       'Successfully deleted from Favourites',

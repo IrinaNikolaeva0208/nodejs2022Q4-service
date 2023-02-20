@@ -16,4 +16,9 @@ export class Favourites {
 
   @OneToMany(() => Album, (album) => album.favs)
   albums: Album[];
+
+  toResponse() {
+    const { tracks, artists, albums } = this;
+    return { artists, albums, tracks };
+  }
 }
