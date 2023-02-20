@@ -18,10 +18,16 @@ npm install
 ```
 
 ## Running application
-
+1. Rename ```.env.example``` to ```.env```
+2. Run
 ```
-npm start
+docker-compose --env-file .env build
 ```
+3. Run
+```
+docker-compose up
+```
+[Here](https://hub.docker.com/r/nikliss/nodejs-service/tags) you can find image of the application 
 
 After starting the app on port (4000 as default) you can open
 in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
