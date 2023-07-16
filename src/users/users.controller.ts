@@ -2,44 +2,48 @@ import {
   Controller,
   Put,
   Body,
+  Get,
+  Post,
+  Delete,
   Param,
   HttpStatus,
-  HttpException,
+  HttpCode,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { UserService } from './users.service';
-import isValidUserCreateDto from './dto/createDto/validateDto';
-import isValidUserUpdateDto from './dto/updateDto/validateDto';
-import { EntityController } from 'src/utils/classes/controller';
-import { validate } from 'uuid';
+import { CreateUserDto } from './dto/createUser.dto';
+import { UpdatePasswordDto } from './dto/updatePassword.dto';
 
 @Controller('user')
-export class UsersController extends EntityController<UserService> {
-  constructor(private userService: UserService) {
-    super(userService);
+export class UsersController {
+  constructor(private service: UserService) {}
+
+  @Get()
+  async getAllUsers() {
+    return await this.service.findAll();
   }
 
-  isValidCreateDto(dto: any): boolean {
-    return isValidUserCreateDto(dto);
+  @Get(':id')
+  async getUserById(@Param('id', new ParseUUIDPipe()) id: string) {
+    return await this.service.findOne(id);
   }
 
-  isValidUpdateDto(dto: any): boolean {
-    return isValidUserUpdateDto(dto);
+  @Post()
+  async createUser(@Body() createDto: CreateUserDto) {
+    return await this.service.create(createDto);
   }
 
   @Put(':id')
-  async updateEntity(@Body() updateDto, @Param() params) {
-    if (!this.isValidUpdateDto(updateDto))
-      throw new HttpException('Invalid data', HttpStatus.BAD_REQUEST);
-    if (!validate(params.id))
-      throw new HttpException('Invalid ID', HttpStatus.BAD_REQUEST);
-    let userToUpdate;
-    try {
-      userToUpdate = this.service.change(params.id, updateDto);
-    } catch (err) {
-      throw new HttpException('Wrong password', HttpStatus.FORBIDDEN);
-    }
-    if (!userToUpdate)
-      throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
-    return userToUpdate;
+  async updateUser(
+    @Body() updateDto: UpdatePasswordDto,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ) {
+    return await this.service.update(id, updateDto);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteUser(@Param('id', new ParseUUIDPipe()) id: string) {
+    await this.service.delete(id);
   }
 }

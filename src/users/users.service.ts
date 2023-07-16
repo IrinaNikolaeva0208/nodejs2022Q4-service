@@ -1,77 +1,68 @@
-import { Injectable } from '@nestjs/common';
-import { User } from './interfaces/user.interface';
-import { v4 } from 'uuid';
-import { CreateUserDto } from './dto/createDto/createUser.dto';
-import { UpdatePasswordDto } from './dto/updateDto/updatePassword.dto';
-import { Service } from 'src/utils/classes/service';
-import db from 'src/utils/database/DB';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
+import { User } from './entities/user.entity';
+import { CreateUserDto } from './dto/createUser.dto';
+import { UpdatePasswordDto } from './dto/updatePassword.dto';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { FavsService } from 'src/favourites/favs.service';
 
 @Injectable()
-export class UserService extends Service {
-  route = 'users';
+export class UserService {
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    private favsService: FavsService,
+  ) {}
 
-  findAll() {
-    return db[this.route].map((user) => {
-      return {
-        id: user.id,
-        login: user.login,
-        version: user.version,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      };
-    });
+  async findAll() {
+    return (await this.userRepository.find()).map((user) => user.toResponse());
   }
 
-  findOne(id: string) {
-    const userToGet = db[this.route].find((user) => user.id == id);
+  async findOne(id: string) {
+    const userToGet = await this.userRepository.findOne({ where: { id } });
     if (userToGet) {
-      return {
-        id: id,
-        login: userToGet.login,
-        version: userToGet.version,
-        createdAt: userToGet.createdAt,
-        updatedAt: userToGet.updatedAt,
-      };
+      return userToGet.toResponse();
     }
-    return userToGet;
+    throw new NotFoundException('User not found');
   }
 
-  create(dto: CreateUserDto) {
-    const timestamp = +new Date();
-    const id = v4();
+  async create(dto: CreateUserDto) {
+    const timestamp = Date.now();
     const version = 1;
-    const newUser: User = {
-      id: id,
+    const newUser = {
       ...dto,
       version: version,
       createdAt: timestamp,
       updatedAt: timestamp,
     };
-    db[this.route].push(newUser);
-    return {
-      id: id,
-      login: newUser.login,
-      version: version,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    };
+    const createdUser = this.userRepository.create(newUser);
+    createdUser.favourites = await this.favsService.createNewFavs();
+    return (await this.userRepository.save(createdUser)).toResponse();
   }
 
-  change(id: string, dto: UpdatePasswordDto) {
-    const userToUpdate = db[this.route].find((user) => user.id == id);
+  async update(id: string, dto: UpdatePasswordDto) {
+    const userToUpdate = await this.userRepository.findOne({
+      where: { id: id },
+    });
     if (userToUpdate) {
-      if (userToUpdate.password != dto.oldPassword) throw new Error();
+      if (userToUpdate.password != dto.oldPassword)
+        throw new ForbiddenException('Wrong password');
       userToUpdate.password = dto.newPassword;
-      userToUpdate.updatedAt = +new Date();
+      userToUpdate.updatedAt = Date.now();
       userToUpdate.version++;
-      return {
-        id: id,
-        login: userToUpdate.login,
-        version: userToUpdate.version,
-        createdAt: userToUpdate.createdAt,
-        updatedAt: userToUpdate.updatedAt,
-      };
+      userToUpdate.createdAt = +userToUpdate.createdAt;
+      return (await this.userRepository.save(userToUpdate)).toResponse();
     }
-    return userToUpdate;
+    throw new NotFoundException('User not found');
+  }
+
+  async delete(id: string) {
+    const deleteUserResult = await this.userRepository.delete(id);
+    if (!deleteUserResult.affected)
+      throw new NotFoundException('User not found');
   }
 }

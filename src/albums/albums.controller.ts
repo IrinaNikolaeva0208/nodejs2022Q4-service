@@ -1,19 +1,47 @@
-import { Controller } from '@nestjs/common';
-import { EntityController } from 'src/utils/classes/controller';
+import {
+  Controller,
+  Param,
+  Body,
+  Get,
+  Post,
+  Put,
+  Delete,
+  HttpCode,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { AlbumService } from './albums.service';
-import isValidAlbumDto from './dto/validateDto';
+import { AlbumDto } from './dto/album.dto';
 
 @Controller('album')
-export class AlbumsController extends EntityController<AlbumService> {
-  constructor(private albumService: AlbumService) {
-    super(albumService);
+export class AlbumsController {
+  constructor(private service: AlbumService) {}
+
+  @Get()
+  async getAllEntities() {
+    return this.service.findAll();
   }
 
-  isValidCreateDto(dto: any): boolean {
-    return isValidAlbumDto(dto);
+  @Get(':id')
+  async getAlbumById(@Param('id', new ParseUUIDPipe()) id: string) {
+    return this.service.findOne(id);
   }
 
-  isValidUpdateDto(dto: any): boolean {
-    return isValidAlbumDto(dto);
+  @Post()
+  async createAlbum(@Body() createDto: AlbumDto) {
+    return this.service.create(createDto);
+  }
+
+  @Put(':id')
+  async updateAlbum(
+    @Body() updateDto: AlbumDto,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ) {
+    return this.service.update(id, updateDto);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  async deleteAlbum(@Param('id', new ParseUUIDPipe()) id: string) {
+    await this.service.delete(id);
   }
 }

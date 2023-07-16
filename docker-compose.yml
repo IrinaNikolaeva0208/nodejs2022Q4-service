@@ -1,0 +1,36 @@
+version: '3.9'
+
+services:
+  app:
+    build: .
+    restart: always
+    networks:
+      - app-network
+    ports:
+      - "${PORT}:${PORT}"
+    depends_on:
+      - postgres
+    volumes:
+      - type: bind
+        source: ./src
+        target: /app/src
+  postgres:
+    image: postgres:15-alpine
+    restart: always
+    networks:
+      - app-network
+    ports:
+      - "${DB_PORT}:${POSTGRES_PORT}"
+    env_file:
+      - .env
+    volumes:
+      - app-volume:/app
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  app-volume:
+
+ 
