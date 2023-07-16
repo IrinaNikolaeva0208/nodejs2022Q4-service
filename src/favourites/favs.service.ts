@@ -14,28 +14,23 @@ export class FavsService {
     private albumService: AlbumService,
     private artistService: ArtistService,
     private trackService: TrackService,
-  ) {
-    const createIfDoesNotExist = async () => {
-      const favs = await this.favsRepository.find();
-      if (!favs.length) {
-        const newFavs = this.favsRepository.create();
-        await this.favsRepository.save(newFavs);
-      }
-    };
-    createIfDoesNotExist();
+  ) {}
+
+  async createNewFavs() {
+    const newFavs = this.favsRepository.create();
+    return await this.favsRepository.save(newFavs);
   }
 
-  async findAllFavs() {
-    return (
-      await this.favsRepository.find({
-        relations: { artists: true, albums: true, tracks: true },
-      })
-    )[0];
+  async findAllFavs(userId: string) {
+    return await this.favsRepository.findOne({
+      where: { user: { id: userId } },
+      relations: { artists: true, albums: true, tracks: true },
+    });
   }
 
-  async addAlbumToFavs(id: string) {
-    const favs = await this.findAllFavs();
-    const album = await this.albumService.findAlbumToFavs(id);
+  async addAlbumToFavs(albumId: string, userId: string) {
+    const favs = await this.findAllFavs(userId);
+    const album = await this.albumService.findAlbumToFavs(albumId);
     if (!album)
       throw new HttpException(
         'Track does not exist',
@@ -49,9 +44,9 @@ export class FavsService {
     );
   }
 
-  async deleteAlbumFromFavs(id: string) {
-    const favs = await this.findAllFavs();
-    const album = await this.albumService.findAlbumToFavs(id);
+  async deleteAlbumFromFavs(albumId: string, userId: string) {
+    const favs = await this.findAllFavs(userId);
+    const album = await this.albumService.findAlbumToFavs(albumId);
     if (!album)
       throw new HttpException('Album not found', HttpStatus.NOT_FOUND);
     const albumIndex = favs.albums.findIndex((item) => item.id == album.id);
@@ -63,9 +58,9 @@ export class FavsService {
     );
   }
 
-  async addArtistToFavs(id: string) {
-    const favs = await this.findAllFavs();
-    const artist = await this.artistService.findArtistToFavs(id);
+  async addArtistToFavs(artistId: string, userId: string) {
+    const favs = await this.findAllFavs(userId);
+    const artist = await this.artistService.findArtistToFavs(artistId);
     if (!artist)
       throw new HttpException(
         'Artist does not exist',
@@ -79,9 +74,9 @@ export class FavsService {
     );
   }
 
-  async deleteArtistFromFavs(id: string) {
-    const favs = await this.findAllFavs();
-    const artist = await this.artistService.findArtistToFavs(id);
+  async deleteArtistFromFavs(artistId: string, userId: string) {
+    const favs = await this.findAllFavs(userId);
+    const artist = await this.artistService.findArtistToFavs(artistId);
     if (!artist)
       throw new HttpException('Artist not found', HttpStatus.NOT_FOUND);
     const artistIndex = favs.artists.findIndex((item) => item.id == artist.id);
@@ -93,9 +88,9 @@ export class FavsService {
     );
   }
 
-  async addTrackToFavs(id: string) {
-    const favs = await this.findAllFavs();
-    const track = await this.trackService.findTrackToFavs(id);
+  async addTrackToFavs(trackId: string, userId: string) {
+    const favs = await this.findAllFavs(userId);
+    const track = await this.trackService.findTrackToFavs(trackId);
     if (!track)
       throw new HttpException(
         'Track does not exist',
@@ -109,9 +104,9 @@ export class FavsService {
     );
   }
 
-  async deleteTrackFromFavs(id: string) {
-    const favs = await this.findAllFavs();
-    const track = await this.trackService.findTrackToFavs(id);
+  async deleteTrackFromFavs(trackId: string, userId: string) {
+    const favs = await this.findAllFavs(userId);
+    const track = await this.trackService.findTrackToFavs(trackId);
     if (!track)
       throw new HttpException('Track not found', HttpStatus.NOT_FOUND);
     const trackIndex = favs.tracks.findIndex((item) => item.id == track.id);

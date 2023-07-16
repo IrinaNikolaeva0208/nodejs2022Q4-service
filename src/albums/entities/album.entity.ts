@@ -33,8 +33,4 @@ export class Album {
 
   @OneToMany(() => Track, (track) => track.album)
   tracks: Track[];
-
-  @ManyToOne(() => Favourites, (favs) => favs.albums)
-  @JoinColumn()
-  favs: Favourites;
 }

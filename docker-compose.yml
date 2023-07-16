@@ -1,4 +1,5 @@
 version: '3.9'
+
 services:
   app:
     build: .
@@ -9,6 +10,10 @@ services:
       - "${PORT}:${PORT}"
     depends_on:
       - postgres
+    volumes:
+      - type: bind
+        source: ./src
+        target: /app/src
   postgres:
     image: postgres:15-alpine
     restart: always
@@ -20,9 +25,11 @@ services:
       - .env
     volumes:
       - app-volume:/app
+
 networks:
   app-network:
     driver: bridge
+
 volumes:
   app-volume:
 

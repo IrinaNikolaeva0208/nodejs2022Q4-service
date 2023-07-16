@@ -26,8 +26,4 @@ export class Artist {
 
   @OneToMany(() => Album, (album) => album.artist)
   albums: Album[];
-
-  @ManyToOne(() => Favourites, (favs) => favs.artists)
-  @JoinColumn()
-  favs: Favourites;
 }

@@ -1,24 +1,34 @@
 import { Album } from 'src/albums/entities/album.entity';
 import { Artist } from 'src/artists/entities/artist.entity';
 import { Track } from 'src/tracks/entities/track.entity';
-import { Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from 'src/users/entities/user.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  OneToOne,
+  JoinColumn,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 
 @Entity()
 export class Favourites {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @OneToMany(() => Track, (track) => track.favs)
+  @ManyToMany(() => Track)
+  @JoinTable()
   tracks: Track[];
 
-  @OneToMany(() => Artist, (artist) => artist.favs)
+  @ManyToMany(() => Artist)
+  @JoinTable()
   artists: Artist[];
 
-  @OneToMany(() => Album, (album) => album.favs)
+  @ManyToMany(() => Album)
+  @JoinTable()
   albums: Album[];
 
-  toResponse() {
-    const { tracks, artists, albums } = this;
-    return { artists, albums, tracks };
-  }
+  @OneToOne(() => User, (user) => user.favourites, { onDelete: 'CASCADE' })
+  @JoinColumn()
+  user: User;
 }

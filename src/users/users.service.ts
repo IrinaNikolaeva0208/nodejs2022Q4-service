@@ -8,12 +8,14 @@ import { CreateUserDto } from './dto/createUser.dto';
 import { UpdatePasswordDto } from './dto/updatePassword.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { FavsService } from 'src/favourites/favs.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private favsService: FavsService,
   ) {}
 
   async findAll() {
@@ -21,7 +23,7 @@ export class UserService {
   }
 
   async findOne(id: string) {
-    const userToGet = await this.userRepository.findOne({ where: { id: id } });
+    const userToGet = await this.userRepository.findOne({ where: { id } });
     if (userToGet) {
       return userToGet.toResponse();
     }
@@ -38,6 +40,7 @@ export class UserService {
       updatedAt: timestamp,
     };
     const createdUser = this.userRepository.create(newUser);
+    createdUser.favourites = await this.favsService.createNewFavs();
     return (await this.userRepository.save(createdUser)).toResponse();
   }
 

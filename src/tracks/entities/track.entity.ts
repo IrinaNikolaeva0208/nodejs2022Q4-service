@@ -39,8 +39,4 @@ export class Track {
   })
   @JoinColumn({ name: 'albumId' })
   album: Album;
-
-  @ManyToOne(() => Favourites, (favs) => favs.tracks)
-  @JoinColumn()
-  favs: Favourites;
 }
