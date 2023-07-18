@@ -20,7 +20,7 @@ const getTokenAndUserId = async (request) => {
     .set('Accept', 'application/json')
     .send(createUserDto);
 
-  const token = `Bearer ${response2.body.accessToken}`;
+  const token = `Bearer ${response2.body.access_token}`;
 
   return { token, mockUserId };
 };

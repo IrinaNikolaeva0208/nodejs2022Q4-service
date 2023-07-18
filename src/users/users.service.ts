@@ -22,12 +22,16 @@ export class UserService {
     return (await this.userRepository.find()).map((user) => user.toResponse());
   }
 
-  async findOne(id: string) {
+  async findOneById(id: string) {
     const userToGet = await this.userRepository.findOne({ where: { id } });
     if (userToGet) {
       return userToGet.toResponse();
     }
     throw new NotFoundException('User not found');
+  }
+
+  async findOneByLogin(login: string) {
+    return await this.userRepository.findOne({ where: { login } });
   }
 
   async create(dto: CreateUserDto) {
