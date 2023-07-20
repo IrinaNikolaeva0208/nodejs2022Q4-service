@@ -15,15 +15,19 @@ export class AuthService {
     await this.usersService.create(userDto);
   }
 
-  async signIn(login: string, password: string) {
-    const user = await this.usersService.findOneByLogin(login);
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new UnauthorizedException();
-    }
-
+  async signIn(user: any) {
     const payload = { sub: user.id, login: user.login };
     return {
-      access_token: await this.jwtService.signAsync(payload),
+      accessToken: await this.jwtService.signAsync(payload),
     };
+  }
+
+  async validateUser(login: string, password: string) {
+    const user = await this.usersService.findOneByLogin(login);
+    if (user && (await bcrypt.compare(password, user.password))) {
+      const { password, ...result } = user;
+      return result;
+    }
+    return null;
   }
 }
