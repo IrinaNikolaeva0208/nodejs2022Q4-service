@@ -9,6 +9,7 @@ import { UpdatePasswordDto } from './dto/updatePassword.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FavsService } from 'src/favourites/favs.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -42,6 +43,7 @@ export class UserService {
       version: version,
       createdAt: timestamp,
       updatedAt: timestamp,
+      password: await bcrypt.hash(dto.password, +process.env.CRYPT_SALT),
     };
     const createdUser = this.userRepository.create(newUser);
     createdUser.favourites = await this.favsService.createNewFavs();
@@ -53,9 +55,12 @@ export class UserService {
       where: { id: id },
     });
     if (userToUpdate) {
-      if (userToUpdate.password != dto.oldPassword)
+      if (!(await bcrypt.compare(dto.oldPassword, userToUpdate.password)))
         throw new ForbiddenException('Wrong password');
-      userToUpdate.password = dto.newPassword;
+      userToUpdate.password = await bcrypt.hash(
+        dto.newPassword,
+        +process.env.CRYPT_SALT,
+      );
       userToUpdate.updatedAt = Date.now();
       userToUpdate.version++;
       userToUpdate.createdAt = +userToUpdate.createdAt;
