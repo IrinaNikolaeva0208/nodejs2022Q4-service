@@ -12,14 +12,14 @@ export class AuthService {
   ) {}
 
   async signUp(userDto: CreateUserDto) {
-    await this.usersService.create(userDto);
+    const user = await this.usersService.create(userDto);
+    const payload = { sub: user.id, login: user.login };
+    return this.refreshTokens(payload);
   }
 
   async signIn(user: any) {
     const payload = { sub: user.id, login: user.login };
-    return {
-      accessToken: await this.jwtService.signAsync(payload),
-    };
+    return this.refreshTokens(payload);
   }
 
   async validateUser(login: string, password: string) {
@@ -29,5 +29,16 @@ export class AuthService {
       return result;
     }
     return null;
+  }
+
+  async refreshTokens(payload: any) {
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(payload),
+      this.jwtService.signAsync(payload, {
+        secret: process.env.JWT_SECRET_REFRESH_KEY,
+        expiresIn: process.env.TOKEN_REFRESH_EXPIRE_TIME,
+      }),
+    ]);
+    return { accessToken, refreshToken };
   }
 }
