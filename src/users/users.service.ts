@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FavsService } from 'src/favourites/favs.service';
 import * as bcrypt from 'bcrypt';
+import { Role } from 'src/auth/enums/roles.enum';
 
 @Injectable()
 export class UserService {
@@ -35,7 +36,7 @@ export class UserService {
     return await this.userRepository.findOne({ where: { login } });
   }
 
-  async create(dto: CreateUserDto) {
+  async create(dto: CreateUserDto, role: Role) {
     const timestamp = Date.now();
     const version = 1;
     const newUser = {
@@ -43,6 +44,7 @@ export class UserService {
       version: version,
       createdAt: timestamp,
       updatedAt: timestamp,
+      role: role,
       password: await bcrypt.hash(dto.password, +process.env.CRYPT_SALT),
     };
     const createdUser = this.userRepository.create(newUser);

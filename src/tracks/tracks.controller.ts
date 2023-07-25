@@ -11,9 +11,12 @@ import {
 } from '@nestjs/common';
 import { TrackService } from './tracks.service';
 import { TrackDto } from './dto/track.dto';
+import { Role } from 'src/auth/enums/roles.enum';
+import { Roles } from 'src/auth/decorators/roles';
 
 @Controller('track')
 export class TracksController {
+  //
   constructor(private service: TrackService) {}
 
   @Get()
@@ -26,11 +29,13 @@ export class TracksController {
     return this.service.findOne(id);
   }
 
+  @Roles(Role.Admin)
   @Post()
   async createTrack(@Body() createDto: TrackDto) {
     return this.service.create(createDto);
   }
 
+  @Roles(Role.Admin)
   @Put(':id')
   async updateTrack(
     @Body() updateDto: TrackDto,
@@ -39,6 +44,7 @@ export class TracksController {
     return this.service.update(id, updateDto);
   }
 
+  @Roles(Role.Admin)
   @Delete(':id')
   @HttpCode(204)
   async deleteTrack(@Param('id', new ParseUUIDPipe()) id: string) {

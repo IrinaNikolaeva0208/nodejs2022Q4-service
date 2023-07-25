@@ -12,6 +12,8 @@ import {
 } from '@nestjs/common';
 import { ArtistService } from './artists.service';
 import { ArtistDto } from './dto/artist.dto';
+import { Role } from 'src/auth/enums/roles.enum';
+import { Roles } from 'src/auth/decorators/roles';
 
 @Controller('artist')
 export class ArtistsController {
@@ -27,11 +29,13 @@ export class ArtistsController {
     return this.service.findOne(id);
   }
 
+  @Roles(Role.Admin)
   @Post()
   async createArtist(@Body() createDto: ArtistDto) {
     return this.service.create(createDto);
   }
 
+  @Roles(Role.Admin)
   @Put(':id')
   async updateArtist(
     @Body() updateDto: ArtistDto,
@@ -40,6 +44,7 @@ export class ArtistsController {
     return this.service.update(id, updateDto);
   }
 
+  @Roles(Role.Admin)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteArtist(@Param('id', new ParseUUIDPipe()) id: string) {

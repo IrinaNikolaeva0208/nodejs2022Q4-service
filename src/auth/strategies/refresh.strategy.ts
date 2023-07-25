@@ -23,7 +23,11 @@ export class RefreshStrategy extends PassportStrategy(Strategy) {
     if (!refreshToken) throw new UnauthorizedException();
     try {
       const payload = this.jwtService.verify(refreshToken);
-      const user = { sub: payload.sub, login: payload.login };
+      const user = {
+        sub: payload.sub,
+        login: payload.login,
+        role: payload.role,
+      };
       return user;
     } catch (error) {
       throw new ForbiddenException();
