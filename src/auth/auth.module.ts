@@ -7,9 +7,13 @@ import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { RefreshStrategy } from './strategies/refresh.strategy';
+import { EmailConfirmationService } from './emailConfirmation.service';
+import { MailModule } from 'src/mail/mail.module';
+import { ConfirmStrategy } from './strategies/confirm.strategy';
 
 @Module({
   imports: [
+    MailModule,
     UsersModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET_KEY,
@@ -18,6 +22,13 @@ import { RefreshStrategy } from './strategies/refresh.strategy';
     PassportModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy, RefreshStrategy],
+  providers: [
+    AuthService,
+    EmailConfirmationService,
+    LocalStrategy,
+    JwtStrategy,
+    RefreshStrategy,
+    ConfirmStrategy,
+  ],
 })
 export class AuthModule {}

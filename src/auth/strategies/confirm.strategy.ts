@@ -9,20 +9,22 @@ import {
 } from '@nestjs/common';
 
 @Injectable()
-export class RefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
+export class ConfirmStrategy extends PassportStrategy(Strategy, 'jwt-confirm') {
   constructor(private jwtService: JwtService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: process.env.JWT_SECRET_REFRESH_KEY,
+      jwtFromRequest: ExtractJwt.fromUrlQueryParameter('token'),
+      secretOrKey: process.env.JWT_VERIFICATION_SECRET_KEY,
       passReqToCallback: true,
     });
   }
 
   validate(req: Request) {
-    const refreshToken = req.get('Authorization').replace('Bearer', '').trim();
-    if (!refreshToken) throw new UnauthorizedException('00');
+    const confirmToken = req.query.token as string;
+    if (!confirmToken) throw new UnauthorizedException('55');
     try {
-      const payload = this.jwtService.verify(refreshToken);
+      const payload = this.jwtService.verify(confirmToken, {
+        secret: process.env.JWT_VERIFICATION_SECRET_KEY,
+      });
       const user = {
         sub: payload.sub,
         login: payload.login,

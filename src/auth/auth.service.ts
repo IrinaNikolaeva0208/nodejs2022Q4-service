@@ -4,18 +4,22 @@ import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from 'src/users/dto/createUser.dto';
 import { Role } from './enums/roles.enum';
 import * as bcrypt from 'bcrypt';
+import { EmailConfirmationService } from './emailConfirmation.service';
+import { User } from 'src/users/entities/user.entity';
+import { UserPayload } from './types/userPayload';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UserService,
     private jwtService: JwtService,
+    private emailConfirmationService: EmailConfirmationService,
   ) {}
 
   async signUp(userDto: CreateUserDto) {
     const user = await this.usersService.create(userDto, Role.User);
-    const payload = { sub: user.id, login: user.login, role: Role.User };
-    return this.refreshTokens(payload);
+    const payload = { sub: user.id, login: user.login, role: user.role };
+    this.emailConfirmationService.sendEmailConfirmation(payload, user.email);
   }
 
   async signIn(user: any) {
@@ -32,7 +36,6 @@ export class AuthService {
   }
 
   async refreshTokens(payload: any) {
-    console.log(payload);
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload),
       this.jwtService.signAsync(payload, {
