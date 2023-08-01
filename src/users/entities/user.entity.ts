@@ -35,7 +35,7 @@ export class User {
   favourites: Favourites;
 
   toResponse() {
-    const { password, ...userToResponse } = this;
+    const { password, favourites, ...userToResponse } = this;
     return userToResponse;
   }
 }

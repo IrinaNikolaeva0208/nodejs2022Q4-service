@@ -20,6 +20,7 @@ export class AuthService {
     const user = await this.usersService.create(userDto, Role.User);
     const payload = { sub: user.id, login: user.login, role: user.role };
     this.emailConfirmationService.sendEmailConfirmation(payload, user.email);
+    return user;
   }
 
   async signIn(user: any) {

@@ -40,12 +40,6 @@ export class UsersController {
     return await this.service.findOneById(id);
   }
 
-  @Roles(Role.Admin)
-  @Post()
-  async createUser(@Body() createDto: CreateUserDto) {
-    return await this.service.create(createDto, Role.User);
-  }
-
   @Put(':id')
   async updateUser(
     @Body() updateDto: UpdatePasswordDto,

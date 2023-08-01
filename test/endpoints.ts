@@ -1,7 +1,7 @@
 export const usersRoutes = {
   getAll: '/user',
+  createAdmin: '/user/admin',
   getById: (userId) => `/user/${userId}`,
-  create: '/user',
   update: (userId) => `/user/${userId}`,
   delete: (userId) => `/user/${userId}`,
 };
@@ -41,4 +41,5 @@ export const authRoutes = {
   signup: '/auth/signup',
   login: '/auth/login',
   refresh: '/auth/refresh',
+  confirmEmail: (token) => `/auth/confirm?token=${token}`,
 };

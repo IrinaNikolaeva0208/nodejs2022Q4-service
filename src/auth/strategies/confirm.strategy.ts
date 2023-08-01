@@ -20,7 +20,7 @@ export class ConfirmStrategy extends PassportStrategy(Strategy, 'jwt-confirm') {
 
   validate(req: Request) {
     const confirmToken = req.query.token as string;
-    if (!confirmToken) throw new UnauthorizedException('55');
+    if (!confirmToken) throw new UnauthorizedException();
     try {
       const payload = this.jwtService.verify(confirmToken, {
         secret: process.env.JWT_VERIFICATION_SECRET_KEY,

@@ -1,11 +1,7 @@
 import { validate } from 'uuid';
 import { StatusCodes } from 'http-status-codes';
 import { request } from './lib';
-import {
-  getTokenAndUserId,
-  shouldAuthorizationBeTested,
-  removeTokenUser,
-} from './utils';
+import { tokensAndIds, removeTokenUser } from './utils';
 import { tracksRoutes } from './endpoints';
 
 const createTrackDto = {
@@ -20,25 +16,28 @@ const randomUUID = '0a35dd62-e09f-444b-a628-f4e7c6954f57';
 
 describe('Tracks (e2e)', () => {
   const unauthorizedRequest = request;
-  const commonHeaders = { Accept: 'application/json' };
+  const userHeaders = { Accept: 'application/json' };
+  const unauthorizedHeaders = { Accept: 'application/json' };
+  const adminHeaders = { Accept: 'application/json' };
   let mockUserId: string | undefined;
+  let mockAdminId: string | undefined;
 
   beforeAll(async () => {
-    if (shouldAuthorizationBeTested) {
-      const result = await getTokenAndUserId(unauthorizedRequest);
-      commonHeaders['Authorization'] = result.token;
-      mockUserId = result.mockUserId;
-    }
+    mockUserId = (await tokensAndIds.mockUserId).body.id;
+    userHeaders['Authorization'] =
+      'Bearer ' + (await tokensAndIds.userToken).body.accessToken;
+    adminHeaders['Authorization'] = tokensAndIds.adminToken;
+    mockAdminId = tokensAndIds.mockAdminId;
   });
 
   afterAll(async () => {
     // delete mock user
     if (mockUserId) {
-      await removeTokenUser(unauthorizedRequest, mockUserId, commonHeaders);
+      await removeTokenUser(unauthorizedRequest, mockUserId, adminHeaders);
     }
 
-    if (commonHeaders['Authorization']) {
-      delete commonHeaders['Authorization'];
+    if (userHeaders['Authorization']) {
+      delete userHeaders['Authorization'];
     }
   });
 
@@ -46,16 +45,30 @@ describe('Tracks (e2e)', () => {
     it('should correctly get all tracks', async () => {
       const response = await unauthorizedRequest
         .get(tracksRoutes.getAll)
-        .set(commonHeaders);
+        .set(userHeaders);
 
       expect(response.status).toBe(StatusCodes.OK);
       expect(response.body).toBeInstanceOf(Array);
     });
 
+    it('should respond with UNAUTHORIZED status code while getting all tracks in case of not being unauthorized', async () => {
+      const response = await unauthorizedRequest
+        .get(tracksRoutes.getAll)
+        .set(unauthorizedHeaders);
+      expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
+    });
+
+    it('should respond with UNAUTHORIZED status code while getting track by id in case of not being unauthorized', async () => {
+      const response = await unauthorizedRequest
+        .get(tracksRoutes.getById(randomUUID))
+        .set(unauthorizedHeaders);
+      expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
+    });
+
     it('should correctly get track by id', async () => {
       const creationResponse = await unauthorizedRequest
         .post(tracksRoutes.create)
-        .set(commonHeaders)
+        .set(adminHeaders)
         .send(createTrackDto);
 
       const { id } = creationResponse.body;
@@ -64,22 +77,22 @@ describe('Tracks (e2e)', () => {
 
       const searchResponse = await unauthorizedRequest
         .get(tracksRoutes.getById(id))
-        .set(commonHeaders);
+        .set(userHeaders);
 
       expect(searchResponse.statusCode).toBe(StatusCodes.OK);
       expect(searchResponse.body).toBeInstanceOf(Object);
 
       const cleanupResponse = await unauthorizedRequest
         .delete(tracksRoutes.delete(id))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(cleanupResponse.statusCode).toBe(StatusCodes.NO_CONTENT);
     });
 
-    it('should respond with BAD_REQUEST status code in case of invalid id', async () => {
+    it('should respond with BAD_REQUEST status code in case of invalid id ', async () => {
       const response = await unauthorizedRequest
         .get(tracksRoutes.getById('some-invalid-id'))
-        .set(commonHeaders);
+        .set(userHeaders);
 
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
     });
@@ -87,17 +100,33 @@ describe('Tracks (e2e)', () => {
     it("should respond with NOT_FOUND status code in case if track doesn't exist", async () => {
       const response = await unauthorizedRequest
         .get(tracksRoutes.getById(randomUUID))
-        .set(commonHeaders);
+        .set(userHeaders);
 
       expect(response.status).toBe(StatusCodes.NOT_FOUND);
     });
   });
 
   describe('POST', () => {
-    it('should correctly create track', async () => {
+    it('should respond with FORBIDDEN status code in case of "User" role', async () => {
       const response = await unauthorizedRequest
         .post(tracksRoutes.create)
-        .set(commonHeaders)
+        .set(userHeaders)
+        .send(createTrackDto);
+      expect(response.status).toBe(StatusCodes.FORBIDDEN);
+    });
+
+    it('should respond with UNAUTHORIZED status code in case of not being unauthorized', async () => {
+      const response = await unauthorizedRequest
+        .post(tracksRoutes.create)
+        .set(unauthorizedHeaders)
+        .send(createTrackDto);
+      expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
+    });
+
+    it('should correctly create track in case of "Admin" role', async () => {
+      const response = await unauthorizedRequest
+        .post(tracksRoutes.create)
+        .set(adminHeaders)
         .send(createTrackDto);
 
       expect(response.status).toBe(StatusCodes.CREATED);
@@ -111,24 +140,24 @@ describe('Tracks (e2e)', () => {
 
       const cleanupResponse = await unauthorizedRequest
         .delete(tracksRoutes.delete(id))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(cleanupResponse.statusCode).toBe(StatusCodes.NO_CONTENT);
     });
 
-    it('should respond with BAD_REQUEST in case of invalid required data', async () => {
+    it('should respond with BAD_REQUEST in case of invalid required data and "Admin" role', async () => {
       const responses = await Promise.all([
         unauthorizedRequest
           .post(tracksRoutes.create)
-          .set(commonHeaders)
+          .set(adminHeaders)
           .send({}),
-        unauthorizedRequest.post(tracksRoutes.create).set(commonHeaders).send({
+        unauthorizedRequest.post(tracksRoutes.create).set(adminHeaders).send({
           name: 'TEST_TRACK',
         }),
-        unauthorizedRequest.post(tracksRoutes.create).set(commonHeaders).send({
+        unauthorizedRequest.post(tracksRoutes.create).set(adminHeaders).send({
           duration: 99,
         }),
-        unauthorizedRequest.post(tracksRoutes.create).set(commonHeaders).send({
+        unauthorizedRequest.post(tracksRoutes.create).set(adminHeaders).send({
           name: null,
           duration: '99',
         }),
@@ -143,10 +172,36 @@ describe('Tracks (e2e)', () => {
   });
 
   describe('PUT', () => {
-    it('should correctly update track match', async () => {
+    it('should respond with UNAUTHORIZED status code in case of not being unauthorized', async () => {
+      const response = await unauthorizedRequest
+        .put(tracksRoutes.update(randomUUID))
+        .set(unauthorizedHeaders)
+        .send({
+          name: createTrackDto.name,
+          duration: 188,
+          artistId: createTrackDto.artistId,
+          albumId: createTrackDto.albumId,
+        });
+      expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
+    });
+
+    it('should respond with FORBIDDEN status code in case of "User" role', async () => {
+      const response = await unauthorizedRequest
+        .put(tracksRoutes.update(randomUUID))
+        .set(userHeaders)
+        .send({
+          name: createTrackDto.name,
+          duration: 188,
+          artistId: createTrackDto.artistId,
+          albumId: createTrackDto.albumId,
+        });
+      expect(response.status).toBe(StatusCodes.FORBIDDEN);
+    });
+
+    it('should correctly update track match in case of "Admin" role', async () => {
       const creationResponse = await unauthorizedRequest
         .post(tracksRoutes.create)
-        .set(commonHeaders)
+        .set(adminHeaders)
         .send(createTrackDto);
 
       const { id: createdId } = creationResponse.body;
@@ -155,7 +210,7 @@ describe('Tracks (e2e)', () => {
 
       const updateResponse = await unauthorizedRequest
         .put(tracksRoutes.update(createdId))
-        .set(commonHeaders)
+        .set(adminHeaders)
         .send({
           name: createTrackDto.name,
           duration: 188,
@@ -182,15 +237,15 @@ describe('Tracks (e2e)', () => {
 
       const cleanupResponse = await unauthorizedRequest
         .delete(tracksRoutes.delete(createdId))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(cleanupResponse.statusCode).toBe(StatusCodes.NO_CONTENT);
     });
 
-    it('should respond with BAD_REQUEST status code in case of invalid id', async () => {
+    it('should respond with BAD_REQUEST status code in case of invalid id and "Admin" role', async () => {
       const response = await unauthorizedRequest
         .put(tracksRoutes.update('some-invalid-id'))
-        .set(commonHeaders)
+        .set(adminHeaders)
         .send({
           name: createTrackDto.name,
           duration: 188,
@@ -201,10 +256,10 @@ describe('Tracks (e2e)', () => {
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
     });
 
-    it('should respond with BAD_REQUEST status code in case of invalid dto', async () => {
+    it('should respond with BAD_REQUEST status code in case of invalid dto and "Admin" role', async () => {
       const creationResponse = await unauthorizedRequest
         .post(tracksRoutes.create)
-        .set(commonHeaders)
+        .set(adminHeaders)
         .send(createTrackDto);
 
       const { id: createdId } = creationResponse.body;
@@ -213,7 +268,7 @@ describe('Tracks (e2e)', () => {
 
       const response = await unauthorizedRequest
         .put(tracksRoutes.update(createdId))
-        .set(commonHeaders)
+        .set(adminHeaders)
         .send({
           name: null,
           duration: '188',
@@ -224,10 +279,10 @@ describe('Tracks (e2e)', () => {
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
     });
 
-    it("should respond with NOT_FOUND status code in case if track doesn't exist", async () => {
+    it("should respond with NOT_FOUND status code in case if track doesn't exist in case of 'Admin' role", async () => {
       const response = await unauthorizedRequest
         .put(tracksRoutes.update(randomUUID))
-        .set(commonHeaders)
+        .set(adminHeaders)
         .send({
           name: createTrackDto.name,
           duration: 188,
@@ -240,10 +295,24 @@ describe('Tracks (e2e)', () => {
   });
 
   describe('DELETE', () => {
-    it('should correctly delete track', async () => {
+    it('should respond with FORBIDDEN status code in case of "User" role', async () => {
+      const response = await unauthorizedRequest
+        .delete(tracksRoutes.delete(randomUUID))
+        .set(userHeaders);
+      expect(response.status).toBe(StatusCodes.FORBIDDEN);
+    });
+
+    it('should respond with UNAUTHORIZED status code in case of not being unauthorized', async () => {
+      const response = await unauthorizedRequest
+        .delete(tracksRoutes.delete(randomUUID))
+        .set(unauthorizedHeaders);
+      expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
+    });
+
+    it('should correctly delete track in case of "Admin" role', async () => {
       const response = await unauthorizedRequest
         .post(tracksRoutes.create)
-        .set(commonHeaders)
+        .set(adminHeaders)
         .send(createTrackDto);
 
       const { id } = response.body;
@@ -252,29 +321,29 @@ describe('Tracks (e2e)', () => {
 
       const cleanupResponse = await unauthorizedRequest
         .delete(tracksRoutes.delete(id))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(cleanupResponse.statusCode).toBe(StatusCodes.NO_CONTENT);
 
       const searchResponse = await unauthorizedRequest
         .get(tracksRoutes.getById(id))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(searchResponse.statusCode).toBe(StatusCodes.NOT_FOUND);
     });
 
-    it('should respond with BAD_REQUEST status code in case of invalid id', async () => {
+    it('should respond with BAD_REQUEST status code in case of invalid id and "Admin" role', async () => {
       const response = await unauthorizedRequest
         .delete(tracksRoutes.delete('some-invalid-id'))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
     });
 
-    it("should respond with NOT_FOUND status code in case if track doesn't exist", async () => {
+    it("should respond with NOT_FOUND status code in case if track doesn't exist and user is admin", async () => {
       const response = await unauthorizedRequest
         .delete(tracksRoutes.delete(randomUUID))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(response.status).toBe(StatusCodes.NOT_FOUND);
     });

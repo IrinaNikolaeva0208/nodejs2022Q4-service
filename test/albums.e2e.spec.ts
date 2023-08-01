@@ -2,11 +2,7 @@ import { request } from './lib';
 import { StatusCodes } from 'http-status-codes';
 import { albumsRoutes, artistsRoutes, tracksRoutes } from './endpoints';
 import { validate } from 'uuid';
-import {
-  getTokenAndUserId,
-  shouldAuthorizationBeTested,
-  removeTokenUser,
-} from './utils';
+import { removeTokenUser, tokensAndIds } from './utils';
 
 const createAlbumDto = {
   name: 'TEST_ALBUM',
@@ -24,25 +20,28 @@ const randomUUID = '0a35dd62-e09f-444b-a628-f4e7c6954f57';
 
 describe('Album (e2e)', () => {
   const unauthorizedRequest = request;
-  const commonHeaders = { Accept: 'application/json' };
+  const userHeaders = { Accept: 'application/json' };
+  const unauthorizedHeaders = { Accept: 'application/json' };
+  const adminHeaders = { Accept: 'application/json' };
   let mockUserId: string | undefined;
+  let mockAdminId: string | undefined;
 
   beforeAll(async () => {
-    if (shouldAuthorizationBeTested) {
-      const result = await getTokenAndUserId(unauthorizedRequest);
-      commonHeaders['Authorization'] = result.token;
-      mockUserId = result.mockUserId;
-    }
+    mockUserId = (await tokensAndIds.mockUserId).body.id;
+    userHeaders['Authorization'] =
+      'Bearer ' + (await tokensAndIds.userToken).body.accessToken;
+    adminHeaders['Authorization'] = tokensAndIds.adminToken;
+    mockAdminId = tokensAndIds.mockAdminId;
   });
 
   afterAll(async () => {
     // delete mock user
     if (mockUserId) {
-      await removeTokenUser(unauthorizedRequest, mockUserId, commonHeaders);
+      await removeTokenUser(unauthorizedRequest, mockUserId, adminHeaders);
     }
 
-    if (commonHeaders['Authorization']) {
-      delete commonHeaders['Authorization'];
+    if (userHeaders['Authorization']) {
+      delete userHeaders['Authorization'];
     }
   });
 
@@ -50,16 +49,23 @@ describe('Album (e2e)', () => {
     it('should correctly get all albums', async () => {
       const response = await unauthorizedRequest
         .get(albumsRoutes.getAll)
-        .set(commonHeaders);
+        .set(userHeaders);
 
       expect(response.status).toBe(StatusCodes.OK);
       expect(response.body).toBeInstanceOf(Array);
     });
 
+    it('should respond with UNAUTHORIZED status code while getting all albums in case of not being unauthorized', async () => {
+      const response = await unauthorizedRequest
+        .get(albumsRoutes.getAll)
+        .set(unauthorizedHeaders);
+      expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
+    });
+
     it('should correctly get album by id', async () => {
       const creationResponse = await unauthorizedRequest
         .post(albumsRoutes.create)
-        .set(commonHeaders)
+        .set(adminHeaders)
         .send(createAlbumDto);
 
       const { id } = creationResponse.body;
@@ -68,22 +74,29 @@ describe('Album (e2e)', () => {
 
       const searchResponse = await unauthorizedRequest
         .get(albumsRoutes.getById(id))
-        .set(commonHeaders);
+        .set(userHeaders);
 
       expect(searchResponse.statusCode).toBe(StatusCodes.OK);
       expect(searchResponse.body).toBeInstanceOf(Object);
 
       const cleanupResponse = await unauthorizedRequest
         .delete(albumsRoutes.delete(id))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(cleanupResponse.statusCode).toBe(StatusCodes.NO_CONTENT);
+    });
+
+    it('should respond with UNAUTHORIZED status code while getting album by id in case of not being unauthorized', async () => {
+      const response = await unauthorizedRequest
+        .get(albumsRoutes.getById(randomUUID))
+        .set(unauthorizedHeaders);
+      expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
     });
 
     it('should respond with BAD_REQUEST status code in case of invalid id', async () => {
       const response = await unauthorizedRequest
         .get(albumsRoutes.getById('some-invalid-id'))
-        .set(commonHeaders);
+        .set(userHeaders);
 
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
     });
@@ -91,17 +104,17 @@ describe('Album (e2e)', () => {
     it("should respond with NOT_FOUND status code in case if album doesn't exist", async () => {
       const response = await unauthorizedRequest
         .get(albumsRoutes.getById(randomUUID))
-        .set(commonHeaders);
+        .set(userHeaders);
 
       expect(response.status).toBe(StatusCodes.NOT_FOUND);
     });
   });
 
   describe('POST', () => {
-    it('should correctly create album', async () => {
+    it('should correctly create album in case of "Admin" role', async () => {
       const response = await unauthorizedRequest
         .post(albumsRoutes.create)
-        .set(commonHeaders)
+        .set(adminHeaders)
         .send(createAlbumDto);
 
       const { id, name, year, artistId } = response.body;
@@ -114,24 +127,40 @@ describe('Album (e2e)', () => {
       expect(validate(id)).toBe(true);
       const cleanupResponse = await unauthorizedRequest
         .delete(albumsRoutes.delete(id))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(cleanupResponse.statusCode).toBe(StatusCodes.NO_CONTENT);
     });
 
-    it('should respond with BAD_REQUEST in case of invalid required data', async () => {
+    it('should respond with FORBIDDEN status code in case of "User" role', async () => {
+      const response = await unauthorizedRequest
+        .post(albumsRoutes.create)
+        .set(userHeaders)
+        .send(createAlbumDto);
+      expect(response.status).toBe(StatusCodes.FORBIDDEN);
+    });
+
+    it('should respond with UNAUTHORIZED status code in case of not being unauthorized', async () => {
+      const response = await unauthorizedRequest
+        .post(albumsRoutes.create)
+        .set(unauthorizedHeaders)
+        .send(createAlbumDto);
+      expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
+    });
+
+    it('should respond with BAD_REQUEST in case of invalid required data and "Admin" role', async () => {
       const responses = await Promise.all([
         unauthorizedRequest
           .post(albumsRoutes.create)
-          .set(commonHeaders)
+          .set(adminHeaders)
           .send({}),
-        unauthorizedRequest.post(albumsRoutes.create).set(commonHeaders).send({
+        unauthorizedRequest.post(albumsRoutes.create).set(adminHeaders).send({
           name: 'TEST_ALBUM',
         }),
-        unauthorizedRequest.post(albumsRoutes.create).set(commonHeaders).send({
+        unauthorizedRequest.post(albumsRoutes.create).set(adminHeaders).send({
           year: 2022,
         }),
-        unauthorizedRequest.post(albumsRoutes.create).set(commonHeaders).send({
+        unauthorizedRequest.post(albumsRoutes.create).set(adminHeaders).send({
           name: null,
           year: '2022',
         }),
@@ -146,11 +175,11 @@ describe('Album (e2e)', () => {
   });
 
   describe('PUT', () => {
-    it('should correctly update album', async () => {
+    it('should correctly update album in case of "Admin" role', async () => {
       // Preparation start
       const creationResponse = await unauthorizedRequest
         .post(albumsRoutes.create)
-        .set(commonHeaders)
+        .set(adminHeaders)
         .send(createAlbumDto);
 
       const { id: createdId } = creationResponse.body;
@@ -160,7 +189,7 @@ describe('Album (e2e)', () => {
 
       const creationArtistResponse = await unauthorizedRequest
         .post(artistsRoutes.create)
-        .set(commonHeaders)
+        .set(adminHeaders)
         .send(createArtistDto);
 
       expect(creationArtistResponse.statusCode).toBe(StatusCodes.CREATED);
@@ -169,7 +198,7 @@ describe('Album (e2e)', () => {
 
       const updateResponse = await unauthorizedRequest
         .put(albumsRoutes.update(createdId))
-        .set(commonHeaders)
+        .set(adminHeaders)
         .send({
           name: createAlbumDto.name,
           year: updatedYear,
@@ -188,15 +217,39 @@ describe('Album (e2e)', () => {
 
       const cleanupResponse = await unauthorizedRequest
         .delete(albumsRoutes.delete(createdId))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(cleanupResponse.statusCode).toBe(StatusCodes.NO_CONTENT);
     });
 
-    it('should respond with BAD_REQUEST status code in case of invalid id', async () => {
+    it('should respond with UNAUTHORIZED status code in case of not being unauthorized', async () => {
+      const response = await unauthorizedRequest
+        .put(albumsRoutes.update(randomUUID))
+        .set(unauthorizedHeaders)
+        .send({
+          name: createAlbumDto.name,
+          year: 1970,
+          artistId: randomUUID,
+        });
+      expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
+    });
+
+    it('should respond with FORBIDDEN status code in case of "User" role', async () => {
+      const response = await unauthorizedRequest
+        .put(albumsRoutes.update(randomUUID))
+        .set(userHeaders)
+        .send({
+          name: createAlbumDto.name,
+          year: 1970,
+          artistId: randomUUID,
+        });
+      expect(response.status).toBe(StatusCodes.FORBIDDEN);
+    });
+
+    it('should respond with BAD_REQUEST status code in case of invalid id and "Admin" role', async () => {
       const response = await unauthorizedRequest
         .put(albumsRoutes.update('some-invalid-id'))
-        .set(commonHeaders)
+        .set(adminHeaders)
         .send({
           name: createAlbumDto.name,
           year: 2021,
@@ -206,10 +259,10 @@ describe('Album (e2e)', () => {
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
     });
 
-    it('should respond with BAD_REQUEST status code in case of invalid dto', async () => {
+    it('should respond with BAD_REQUEST status code in case of invalid dto and "Admin" role', async () => {
       const creationResponse = await unauthorizedRequest
         .post(albumsRoutes.create)
-        .set(commonHeaders)
+        .set(adminHeaders)
         .send(createAlbumDto);
 
       const { id: createdId } = creationResponse.body;
@@ -218,7 +271,7 @@ describe('Album (e2e)', () => {
 
       const response = await unauthorizedRequest
         .put(albumsRoutes.update(createdId))
-        .set(commonHeaders)
+        .set(adminHeaders)
         .send({
           name: true,
           year: '2021',
@@ -228,10 +281,10 @@ describe('Album (e2e)', () => {
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
     });
 
-    it("should respond with NOT_FOUND status code in case if album doesn't exist", async () => {
+    it("should respond with NOT_FOUND status code in case if album doesn't exist and user has 'Admin' role", async () => {
       const response = await unauthorizedRequest
         .put(albumsRoutes.update(randomUUID))
-        .set(commonHeaders)
+        .set(adminHeaders)
         .send({
           name: createAlbumDto.name,
           year: 2021,
@@ -246,7 +299,7 @@ describe('Album (e2e)', () => {
     it('should correctly delete album', async () => {
       const response = await unauthorizedRequest
         .post(albumsRoutes.create)
-        .set(commonHeaders)
+        .set(adminHeaders)
         .send(createAlbumDto);
 
       const { id } = response.body;
@@ -255,37 +308,51 @@ describe('Album (e2e)', () => {
 
       const cleanupResponse = await unauthorizedRequest
         .delete(albumsRoutes.delete(id))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(cleanupResponse.statusCode).toBe(StatusCodes.NO_CONTENT);
 
       const searchResponse = await unauthorizedRequest
         .get(albumsRoutes.getById(id))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(searchResponse.statusCode).toBe(StatusCodes.NOT_FOUND);
     });
 
-    it('should respond with BAD_REQUEST status code in case of invalid id', async () => {
+    it('should respond with FORBIDDEN status code in case of "User" role', async () => {
+      const response = await unauthorizedRequest
+        .delete(albumsRoutes.delete(randomUUID))
+        .set(userHeaders);
+      expect(response.status).toBe(StatusCodes.FORBIDDEN);
+    });
+
+    it('should respond with UNAUTHORIZED status code in case of not being unauthorized', async () => {
+      const response = await unauthorizedRequest
+        .delete(albumsRoutes.delete(randomUUID))
+        .set(unauthorizedHeaders);
+      expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
+    });
+
+    it('should respond with BAD_REQUEST status code in case of invalid id and "Admin" role', async () => {
       const response = await unauthorizedRequest
         .delete(albumsRoutes.delete('some-invalid-id'))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
     });
 
-    it("should respond with NOT_FOUND status code in case if album doesn't exist", async () => {
+    it("should respond with NOT_FOUND status code in case if album doesn't exist and user has 'Admin' role", async () => {
       const response = await unauthorizedRequest
         .delete(albumsRoutes.delete(randomUUID))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(response.status).toBe(StatusCodes.NOT_FOUND);
     });
 
-    it('should set track.albumId = null after delete', async () => {
+    it('should set track.albumId = null after delete in case of "Admin" role', async () => {
       const response = await unauthorizedRequest
         .post(albumsRoutes.create)
-        .set(commonHeaders)
+        .set(adminHeaders)
         .send(createAlbumDto);
 
       const { id } = response.body;
@@ -300,7 +367,7 @@ describe('Album (e2e)', () => {
 
       const creationTrackResponse = await unauthorizedRequest
         .post(tracksRoutes.create)
-        .set(commonHeaders)
+        .set(adminHeaders)
         .send(createTrackDto);
 
       const { id: trackId } = creationTrackResponse.body;
@@ -309,12 +376,12 @@ describe('Album (e2e)', () => {
 
       const deleteResponse = await unauthorizedRequest
         .delete(albumsRoutes.delete(id))
-        .set(commonHeaders);
+        .set(adminHeaders);
       expect(deleteResponse.statusCode).toBe(StatusCodes.NO_CONTENT);
 
       const searchTrackResponse = await unauthorizedRequest
         .get(tracksRoutes.getById(trackId))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(searchTrackResponse.statusCode).toBe(StatusCodes.OK);
 
