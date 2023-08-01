@@ -2,6 +2,7 @@ import { request } from './lib';
 import { StatusCodes } from 'http-status-codes';
 import { removeTokenUser, tokensAndIds } from './utils';
 import {
+  usersRoutes,
   albumsRoutes,
   artistsRoutes,
   tracksRoutes,
@@ -89,6 +90,22 @@ describe('Favorites (e2e)', () => {
         .get(favoritesRoutes.getAll)
         .set(adminHeaders)
         .send(findFavsDto);
+      expect(response.status).toBe(StatusCodes.FORBIDDEN);
+    });
+
+    it("should respond with FORBIDDEN status code in case of trying to get other peoples's favourites", async () => {
+      const getUsersResponse = await unauthorizedRequest
+        .get(usersRoutes.getAll)
+        .set(adminHeaders);
+
+      const { id: userId } = getUsersResponse.body.find(
+        (user) => user.id != mockAdminId && user.id != mockUserId,
+      );
+
+      const response = await unauthorizedRequest
+        .get(favoritesRoutes.getAll)
+        .set(adminHeaders)
+        .send({ userId });
       expect(response.status).toBe(StatusCodes.FORBIDDEN);
     });
   });

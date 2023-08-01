@@ -1,4 +1,9 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Favourites } from './entities/favs.entity';
@@ -21,15 +26,20 @@ export class FavsService {
     return await this.favsRepository.save(newFavs);
   }
 
-  async findAllFavs(userId: string): Promise<Favourites> {
+  async findAllFavs(userId: string, sub: string): Promise<Favourites> {
+    if (userId != sub) throw new ForbiddenException();
     return await this.favsRepository.findOne({
       where: { user: { id: userId } },
       relations: { artists: true, albums: true, tracks: true },
     });
   }
 
-  async addAlbumToFavs(albumId: string, userId: string): Promise<void> {
-    const favs = await this.findAllFavs(userId);
+  async addAlbumToFavs(
+    albumId: string,
+    userId: string,
+    sub: string,
+  ): Promise<void> {
+    const favs = await this.findAllFavs(userId, sub);
     const album = await this.albumService.findAlbumToFavs(albumId);
     if (!album)
       throw new HttpException(
@@ -44,8 +54,12 @@ export class FavsService {
     );
   }
 
-  async deleteAlbumFromFavs(albumId: string, userId: string): Promise<void> {
-    const favs = await this.findAllFavs(userId);
+  async deleteAlbumFromFavs(
+    albumId: string,
+    userId: string,
+    sub: string,
+  ): Promise<void> {
+    const favs = await this.findAllFavs(userId, sub);
     const album = await this.albumService.findAlbumToFavs(albumId);
     if (!album)
       throw new HttpException('Album not found', HttpStatus.NOT_FOUND);
@@ -58,8 +72,12 @@ export class FavsService {
     );
   }
 
-  async addArtistToFavs(artistId: string, userId: string): Promise<void> {
-    const favs = await this.findAllFavs(userId);
+  async addArtistToFavs(
+    artistId: string,
+    userId: string,
+    sub: string,
+  ): Promise<void> {
+    const favs = await this.findAllFavs(userId, sub);
     const artist = await this.artistService.findArtistToFavs(artistId);
     if (!artist)
       throw new HttpException(
@@ -74,8 +92,12 @@ export class FavsService {
     );
   }
 
-  async deleteArtistFromFavs(artistId: string, userId: string): Promise<void> {
-    const favs = await this.findAllFavs(userId);
+  async deleteArtistFromFavs(
+    artistId: string,
+    userId: string,
+    sub: string,
+  ): Promise<void> {
+    const favs = await this.findAllFavs(userId, sub);
     const artist = await this.artistService.findArtistToFavs(artistId);
     if (!artist)
       throw new HttpException('Artist not found', HttpStatus.NOT_FOUND);
@@ -88,8 +110,12 @@ export class FavsService {
     );
   }
 
-  async addTrackToFavs(trackId: string, userId: string): Promise<void> {
-    const favs = await this.findAllFavs(userId);
+  async addTrackToFavs(
+    trackId: string,
+    userId: string,
+    sub: string,
+  ): Promise<void> {
+    const favs = await this.findAllFavs(userId, sub);
     const track = await this.trackService.findTrackToFavs(trackId);
     if (!track)
       throw new HttpException(
@@ -104,8 +130,12 @@ export class FavsService {
     );
   }
 
-  async deleteTrackFromFavs(trackId: string, userId: string): Promise<void> {
-    const favs = await this.findAllFavs(userId);
+  async deleteTrackFromFavs(
+    trackId: string,
+    userId: string,
+    sub: string,
+  ): Promise<void> {
+    const favs = await this.findAllFavs(userId, sub);
     const track = await this.trackService.findTrackToFavs(trackId);
     if (!track)
       throw new HttpException('Track not found', HttpStatus.NOT_FOUND);
