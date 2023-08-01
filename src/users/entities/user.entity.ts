@@ -1,5 +1,6 @@
 import { Favourites } from 'src/favourites/entities/favs.entity';
 import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Role } from 'src/auth/enums/roles.enum';
 
 @Entity()
 export class User {
@@ -8,6 +9,12 @@ export class User {
 
   @Column()
   login: string;
+
+  @Column()
+  email: string;
+
+  @Column()
+  emailIsConfirmed: boolean;
 
   @Column()
   password: string;
@@ -21,11 +28,14 @@ export class User {
   @Column({ type: 'bigint' })
   updatedAt: number;
 
+  @Column()
+  role: Role;
+
   @OneToOne(() => Favourites, (favourites) => favourites.user)
   favourites: Favourites;
 
   toResponse() {
-    const { id, login, version, createdAt, updatedAt } = this;
-    return { id, login, version, createdAt, updatedAt };
+    const { password, favourites, ...userToResponse } = this;
+    return userToResponse;
   }
 }

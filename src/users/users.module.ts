@@ -9,5 +9,6 @@ import { FavsModule } from 'src/favourites/favs.module';
   imports: [TypeOrmModule.forFeature([User]), FavsModule],
   controllers: [UsersController],
   providers: [UserService],
+  exports: [UserService],
 })
 export class UsersModule {}

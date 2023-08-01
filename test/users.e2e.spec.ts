@@ -1,163 +1,118 @@
 import { validate } from 'uuid';
 import { StatusCodes } from 'http-status-codes';
 import { request } from './lib';
-import {
-  getTokenAndUserId,
-  shouldAuthorizationBeTested,
-  removeTokenUser,
-} from './utils';
-import { usersRoutes } from './endpoints';
-
-const createUserDto = {
-  login: 'TEST_LOGIN',
-  password: 'TEST_PASSWORD',
-};
+import { removeTokenUser, createUserDto, tokensAndIds } from './utils';
+import { usersRoutes, authRoutes } from './endpoints';
 
 // Probability of collisions for UUID is almost zero
 const randomUUID = '0a35dd62-e09f-444b-a628-f4e7c6954f57';
 
 describe('Users (e2e)', () => {
   const unauthorizedRequest = request;
-  const commonHeaders = { Accept: 'application/json' };
+  const userHeaders = { Accept: 'application/json' };
+  const unauthorizedHeaders = { Accept: 'application/json' };
+  const adminHeaders = { Accept: 'application/json' };
   let mockUserId: string | undefined;
+  let mockAdminId: string | undefined;
 
   beforeAll(async () => {
-    if (shouldAuthorizationBeTested) {
-      const result = await getTokenAndUserId(unauthorizedRequest);
-      commonHeaders['Authorization'] = result.token;
-      mockUserId = result.mockUserId;
-    }
+    mockUserId = (await tokensAndIds.mockUserId).body.id;
+    userHeaders['Authorization'] =
+      'Bearer ' + (await tokensAndIds.userToken).body.accessToken;
+    adminHeaders['Authorization'] = tokensAndIds.adminToken;
+    mockAdminId = tokensAndIds.mockAdminId;
   });
 
   afterAll(async () => {
     // delete mock user
     if (mockUserId) {
-      await removeTokenUser(unauthorizedRequest, mockUserId, commonHeaders);
+      await removeTokenUser(unauthorizedRequest, mockUserId, adminHeaders);
     }
 
-    if (commonHeaders['Authorization']) {
-      delete commonHeaders['Authorization'];
+    if (userHeaders['Authorization']) {
+      delete userHeaders['Authorization'];
     }
   });
 
   describe('GET', () => {
-    it('should correctly get all users', async () => {
+    it('should correctly get all users in case of "Admin" role', async () => {
       const response = await unauthorizedRequest
         .get(usersRoutes.getAll)
-        .set(commonHeaders);
+        .set(adminHeaders);
       expect(response.status).toBe(StatusCodes.OK);
       expect(response.body).toBeInstanceOf(Array);
     });
 
-    it('should correctly get user by id', async () => {
-      const creationResponse = await unauthorizedRequest
-        .post(usersRoutes.create)
-        .set(commonHeaders)
-        .send(createUserDto);
+    it('should respond with FORBIDDEN status code while getting all users in case of "User" role', async () => {
+      const response = await unauthorizedRequest
+        .get(usersRoutes.getAll)
+        .set(userHeaders);
+      expect(response.status).toBe(StatusCodes.FORBIDDEN);
+    });
 
-      const { id } = creationResponse.body;
+    it('should respond with UNAUTHORIZED status code while getting all users in case of not being unauthorized', async () => {
+      const response = await unauthorizedRequest
+        .get(usersRoutes.getAll)
+        .set(unauthorizedHeaders);
+      expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
+    });
 
-      expect(creationResponse.statusCode).toBe(StatusCodes.CREATED);
+    it('should respond with UNAUTHORIZED status code while getting user by id in case of not being unauthorized', async () => {
+      const response = await unauthorizedRequest
+        .get(usersRoutes.getById(randomUUID))
+        .set(unauthorizedHeaders);
+      expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
+    });
 
+    it('should respond with FORBIDDEN status code while getting user by id in case of "User" role', async () => {
+      const response = await unauthorizedRequest
+        .get(usersRoutes.getById(randomUUID))
+        .set(userHeaders);
+      expect(response.status).toBe(StatusCodes.FORBIDDEN);
+    });
+
+    it('should correctly get user by id in case of "Admin" role', async () => {
       const searchResponse = await unauthorizedRequest
-        .get(usersRoutes.getById(id))
-        .set(commonHeaders);
+        .get(usersRoutes.getById(mockUserId))
+        .set(adminHeaders);
 
       expect(searchResponse.statusCode).toBe(StatusCodes.OK);
       expect(searchResponse.body).toBeInstanceOf(Object);
-
-      const cleanupResponse = await unauthorizedRequest
-        .delete(usersRoutes.delete(id))
-        .set(commonHeaders);
-
-      expect(cleanupResponse.statusCode).toBe(StatusCodes.NO_CONTENT);
     });
 
-    it('should respond with BAD_REQUEST status code in case of invalid id', async () => {
+    it('should respond with BAD_REQUEST status code in case of invalid id and "Admin" role', async () => {
       const response = await unauthorizedRequest
         .get(usersRoutes.getById('some-invalid-id'))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
     });
 
-    it("should respond with NOT_FOUND status code in case if user doesn't exist", async () => {
+    it("should respond with NOT_FOUND status code in case if user doesn't exist and 'Admin' role", async () => {
       const response = await unauthorizedRequest
         .get(usersRoutes.getById(randomUUID))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(response.status).toBe(StatusCodes.NOT_FOUND);
     });
   });
 
-  describe('POST', () => {
-    it('should correctly create user', async () => {
-      const response = await unauthorizedRequest
-        .post(usersRoutes.create)
-        .set(commonHeaders)
-        .send(createUserDto);
-
-      const { id, version, login, createdAt, updatedAt } = response.body;
-
-      expect(response.status).toBe(StatusCodes.CREATED);
-
-      expect(login).toBe(createUserDto.login);
-      expect(response.body).not.toHaveProperty('password');
-      expect(validate(id)).toBe(true);
-      expect(version).toBe(1);
-      expect(typeof createdAt).toBe('number');
-      expect(typeof updatedAt).toBe('number');
-      expect(createdAt === updatedAt).toBe(true);
-
-      const cleanupResponse = await unauthorizedRequest
-        .delete(usersRoutes.delete(id))
-        .set(commonHeaders);
-
-      expect(cleanupResponse.statusCode).toBe(StatusCodes.NO_CONTENT);
-    });
-
-    it('should respond with BAD_REQUEST in case of invalid required data', async () => {
-      const responses = await Promise.all([
-        unauthorizedRequest
-          .post(usersRoutes.create)
-          .set(commonHeaders)
-          .send({}),
-        unauthorizedRequest
-          .post(usersRoutes.create)
-          .set(commonHeaders)
-          .send({ login: 'TEST_LOGIN' }),
-        unauthorizedRequest
-          .post(usersRoutes.create)
-          .set(commonHeaders)
-          .send({ password: 'TEST_PASSWORD' }),
-        unauthorizedRequest
-          .post(usersRoutes.create)
-          .set(commonHeaders)
-          .send({ login: null, password: 12345 }),
-      ]);
-
-      expect(
-        responses.every(
-          ({ statusCode }) => statusCode === StatusCodes.BAD_REQUEST,
-        ),
-      );
-    });
-  });
-
   describe('PUT', () => {
+    it('should respond with UNAUTHORIZED status code in case of not being unauthorized', async () => {
+      const response = await unauthorizedRequest
+        .put(usersRoutes.update(mockUserId))
+        .set(unauthorizedHeaders)
+        .send({
+          oldPassword: createUserDto.password,
+          newPassword: 'NEW_PASSWORD',
+        });
+      expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
+    });
+
     it('should correctly update user password match', async () => {
-      const creationResponse = await unauthorizedRequest
-        .post(usersRoutes.create)
-        .set(commonHeaders)
-        .send(createUserDto);
-
-      const { id: createdId } = creationResponse.body;
-
-      expect(creationResponse.status).toBe(StatusCodes.CREATED);
-
       const updateResponse = await unauthorizedRequest
-        .put(usersRoutes.update(createdId))
-        .set(commonHeaders)
+        .put(usersRoutes.update(mockUserId))
+        .set(userHeaders)
         .send({
           oldPassword: createUserDto.password,
           newPassword: 'NEW_PASSWORD',
@@ -169,40 +124,40 @@ describe('Users (e2e)', () => {
         id: updatedId,
         version,
         login,
+        email,
+        emailIsConfirmed,
         createdAt,
         updatedAt,
+        role,
       } = updateResponse.body;
 
       expect(login).toBe(createUserDto.login);
       expect(updateResponse.body).not.toHaveProperty('password');
       expect(validate(updatedId)).toBe(true);
-      expect(createdId).toBe(updatedId);
+      expect(mockUserId).toBe(updatedId);
       expect(version).toBe(2);
       expect(typeof createdAt).toBe('number');
       expect(typeof updatedAt).toBe('number');
+      expect(typeof email).toBe('string');
+      expect(typeof emailIsConfirmed).toBe('boolean');
+      expect(role).toBe('user');
       expect(createdAt === updatedAt).toBe(false);
 
       const updateResponse2 = await unauthorizedRequest
-        .put(usersRoutes.update(createdId))
-        .set(commonHeaders)
+        .put(usersRoutes.update(mockUserId))
+        .set(userHeaders)
         .send({
           oldPassword: createUserDto.password,
           newPassword: 'NEW_PASSWORD',
         });
 
       expect(updateResponse2.statusCode).toBe(StatusCodes.FORBIDDEN);
-
-      const cleanupResponse = await unauthorizedRequest
-        .delete(usersRoutes.delete(createdId))
-        .set(commonHeaders);
-
-      expect(cleanupResponse.statusCode).toBe(StatusCodes.NO_CONTENT);
     });
 
     it('should respond with BAD_REQUEST status code in case of invalid id', async () => {
       const response = await unauthorizedRequest
         .put(usersRoutes.update('some-invalid-id'))
-        .set(commonHeaders)
+        .set(userHeaders)
         .send({
           oldPassword: 'test',
           newPassword: 'fake',
@@ -214,7 +169,7 @@ describe('Users (e2e)', () => {
     it('should respond with BAD_REQUEST status code in case of invalid dto', async () => {
       const response = await unauthorizedRequest
         .put(usersRoutes.update(randomUUID))
-        .set(commonHeaders)
+        .set(userHeaders)
         .send({});
 
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
@@ -223,7 +178,7 @@ describe('Users (e2e)', () => {
     it("should respond with NOT_FOUND status code in case if user doesn't exist", async () => {
       const response = await unauthorizedRequest
         .put(usersRoutes.update(randomUUID))
-        .set(commonHeaders)
+        .set(userHeaders)
         .send({
           oldPassword: 'test',
           newPassword: 'fake',
@@ -234,41 +189,57 @@ describe('Users (e2e)', () => {
   });
 
   describe('DELETE', () => {
-    it('should correctly delete user', async () => {
+    it('should respond with FORBIDDEN status code in case of "User" role', async () => {
       const response = await unauthorizedRequest
-        .post(usersRoutes.create)
-        .set(commonHeaders)
-        .send(createUserDto);
+        .delete(usersRoutes.delete(randomUUID))
+        .set(userHeaders);
+      expect(response.status).toBe(StatusCodes.FORBIDDEN);
+    });
 
-      const { id } = response.body;
+    it('should respond with UNAUTHORIZED status code in case of not being unauthorized', async () => {
+      const response = await unauthorizedRequest
+        .delete(usersRoutes.delete(randomUUID))
+        .set(unauthorizedHeaders);
+      expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
+    });
 
-      expect(response.status).toBe(StatusCodes.CREATED);
+    it('should correctly delete user in case of "Admin" role', async () => {
+      const signUpResponse = await unauthorizedRequest
+        .post(authRoutes.signup)
+        .set(unauthorizedHeaders)
+        .send({
+          login: '123',
+          password: '555',
+          email: 'taffy.grrr@gmail.com',
+        });
+
+      const { id } = signUpResponse.body;
 
       const cleanupResponse = await unauthorizedRequest
         .delete(usersRoutes.delete(id))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(cleanupResponse.statusCode).toBe(StatusCodes.NO_CONTENT);
 
       const searchResponse = await unauthorizedRequest
         .get(usersRoutes.getById(id))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(searchResponse.statusCode).toBe(StatusCodes.NOT_FOUND);
     });
 
-    it('should respond with BAD_REQUEST status code in case of invalid id', async () => {
+    it('should respond with BAD_REQUEST status code in case of invalid id in case of "Admin" role', async () => {
       const response = await unauthorizedRequest
         .delete(usersRoutes.delete('some-invalid-id'))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
     });
 
-    it("should respond with NOT_FOUND status code in case if user doesn't exist", async () => {
+    it("should respond with NOT_FOUND status code in case if user doesn't exist in case of 'Admin' role", async () => {
       const response = await unauthorizedRequest
         .delete(usersRoutes.delete(randomUUID))
-        .set(commonHeaders);
+        .set(adminHeaders);
 
       expect(response.status).toBe(StatusCodes.NOT_FOUND);
     });

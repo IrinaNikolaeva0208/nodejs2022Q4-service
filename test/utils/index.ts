@@ -1,5 +1,4 @@
-import getTokenAndUserId from './getTokenAndUserId';
+import { tokensAndIds, createUserDto } from './tokensAndIds';
 import removeTokenUser from './removeTokenUser';
-import shouldAuthorizationBeTested from './shouldAuthorizationBeTested';
 
-export { getTokenAndUserId, shouldAuthorizationBeTested, removeTokenUser };
+export { removeTokenUser, tokensAndIds, createUserDto };
