@@ -7,6 +7,7 @@ import {
   UnauthorizedException,
   ForbiddenException,
 } from '@nestjs/common';
+import { UserPayload } from '../types/userPayload';
 
 @Injectable()
 export class ConfirmStrategy extends PassportStrategy(Strategy, 'jwt-confirm') {
@@ -18,7 +19,7 @@ export class ConfirmStrategy extends PassportStrategy(Strategy, 'jwt-confirm') {
     });
   }
 
-  validate(req: Request) {
+  validate(req: Request): UserPayload {
     const confirmToken = req.query.token as string;
     if (!confirmToken) throw new UnauthorizedException();
     try {

@@ -22,11 +22,15 @@ export class UserService {
     private favsService: FavsService,
   ) {}
 
-  async findAll() {
+  async findAll(): Promise<
+    Omit<User, 'favourites' | 'toResponse' | 'password'>[]
+  > {
     return (await this.userRepository.find()).map((user) => user.toResponse());
   }
 
-  async findOneById(id: string) {
+  async findOneById(
+    id: string,
+  ): Promise<Omit<User, 'favourites' | 'toResponse' | 'password'>> {
     const userToGet = await this.userRepository.findOne({ where: { id } });
     if (userToGet) {
       return userToGet.toResponse();
@@ -34,15 +38,19 @@ export class UserService {
     throw new NotFoundException('User not found');
   }
 
-  async findOneByLogin(login: string) {
+  async findOneByLogin(
+    login: string,
+  ): Promise<Omit<User, 'favourites' | 'toResponse'>> {
     return await this.userRepository.findOne({ where: { login } });
   }
 
-  async findOneByEmail(email: string) {
+  async findOneByEmail(
+    email: string,
+  ): Promise<Omit<User, 'favourites' | 'toResponse' | 'password'>> {
     return await this.userRepository.findOne({ where: { email } });
   }
 
-  async markEmailAsConfirmed(login: string) {
+  async markEmailAsConfirmed(login: string): Promise<void> {
     const user = await this.findOneByLogin(login);
     if (user.emailIsConfirmed) {
       throw new BadRequestException('Email already confirmed');
@@ -52,7 +60,10 @@ export class UserService {
     await this.userRepository.save(user);
   }
 
-  async create(dto: CreateUserDto, role: Role) {
+  async create(
+    dto: CreateUserDto,
+    role: Role,
+  ): Promise<Omit<User, 'favourites' | 'toResponse' | 'password'>> {
     if (await this.findOneByLogin(dto.login))
       throw new ConflictException('Login is already in use');
     if (await this.findOneByEmail(dto.email))
@@ -73,7 +84,10 @@ export class UserService {
     return (await this.userRepository.save(createdUser)).toResponse();
   }
 
-  async update(id: string, dto: UpdatePasswordDto) {
+  async update(
+    id: string,
+    dto: UpdatePasswordDto,
+  ): Promise<Omit<User, 'favourites' | 'toResponse' | 'password'>> {
     const userToUpdate = await this.userRepository.findOne({
       where: { id: id },
     });
@@ -92,7 +106,7 @@ export class UserService {
     throw new NotFoundException('User not found');
   }
 
-  async delete(id: string) {
+  async delete(id: string): Promise<void> {
     const deleteUserResult = await this.userRepository.delete(id);
     if (!deleteUserResult.affected)
       throw new NotFoundException('User not found');

@@ -17,9 +17,9 @@ const response2 = request
 export const tokensAndIds = {
   mockUserId: response1,
   userToken: response2,
-  mockAdminId: '1ca5a1f3-d26c-4426-91a3-3cc879c22f25',
+  mockAdminId: '4334b987-d9e1-4469-9ec4-888b379ef16c',
   adminToken:
-    'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1OTJlYTBlOS00MWFlLTRlYTEtOTA3ZC05MzQ4ZTQ2OWExNzYiLCJsb2dpbiI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNjkwNzQzMjA3LCJleHAiOjE2OTA3NDY4MDd9.vrPektm3e4zE6RtSX0hulQzrtglgXeskMdI5En2IV24',
+    'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0MzM0Yjk4Ny1kOWUxLTQ0NjktOWVjNC04ODhiMzc5ZWYxNmMiLCJsb2dpbiI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNjkwOTE3Mjk0LCJleHAiOjE2OTA5MjA4OTR9.vMOObqlb9Q_uOYHLqVWF-tUXGx4a5ddRsdGEQC3pFWM',
 };
 
 export { userDto as createUserDto };

@@ -11,16 +11,16 @@ export class ArtistService {
     private artistRepository: Repository<Artist>,
   ) {}
 
-  async findArtistToFavs(artistId: string) {
+  async findArtistToFavs(artistId: string): Promise<Artist> {
     const artist = await this.artistRepository.findOneBy({ id: artistId });
     return artist;
   }
 
-  async findAll() {
+  async findAll(): Promise<Artist[]> {
     return await this.artistRepository.find();
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<Artist> {
     const artistToGet = await this.artistRepository.findOne({
       where: { id: id },
     });
@@ -29,12 +29,12 @@ export class ArtistService {
     throw new NotFoundException('Artist not found');
   }
 
-  async create(dto: ArtistDto) {
+  async create(dto: ArtistDto): Promise<Artist> {
     const createdArtist = this.artistRepository.create(dto);
     return await this.artistRepository.save(createdArtist);
   }
 
-  async update(id: string, dto: ArtistDto) {
+  async update(id: string, dto: ArtistDto): Promise<Artist> {
     const artistToUpdate = await this.artistRepository.findOne({
       where: { id: id },
     });
@@ -47,7 +47,7 @@ export class ArtistService {
     throw new NotFoundException('Artist not found');
   }
 
-  async delete(id: string) {
+  async delete(id: string): Promise<void> {
     const deleteArtistResult = await this.artistRepository.delete(id);
     if (!deleteArtistResult.affected)
       throw new NotFoundException('Artist not found');

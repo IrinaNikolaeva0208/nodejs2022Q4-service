@@ -6,19 +6,20 @@ import {
   ParseUUIDPipe,
   Param,
   Body,
+  Req,
 } from '@nestjs/common';
 import { FindFavsDto } from './dto/findFavs.dto';
 import { FavsService } from './favs.service';
 import { Role } from 'src/auth/enums/roles.enum';
 import { Roles } from 'src/auth/decorators/roles';
-
+import { Favourites } from './entities/favs.entity';
 @Controller('favs')
 export class FavsController {
   constructor(private service: FavsService) {}
 
   @Roles(Role.User)
   @Get()
-  async getFavs(@Body() findFavs: FindFavsDto) {
+  async getFavs(@Body() findFavs: FindFavsDto): Promise<Favourites> {
     return await this.service.findAllFavs(findFavs.userId);
   }
 
@@ -27,7 +28,7 @@ export class FavsController {
   async addTrackToFavs(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() findFavs: FindFavsDto,
-  ) {
+  ): Promise<void> {
     await this.service.addTrackToFavs(id, findFavs.userId);
   }
 
@@ -36,7 +37,7 @@ export class FavsController {
   async deleteTrackFromFavs(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() findFavs: FindFavsDto,
-  ) {
+  ): Promise<void> {
     await this.service.deleteTrackFromFavs(id, findFavs.userId);
   }
 
@@ -45,7 +46,7 @@ export class FavsController {
   async addArtistToFavs(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() findFavs: FindFavsDto,
-  ) {
+  ): Promise<void> {
     await this.service.addArtistToFavs(id, findFavs.userId);
   }
 
@@ -54,7 +55,7 @@ export class FavsController {
   async deleteArtistFromFavs(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() findFavs: FindFavsDto,
-  ) {
+  ): Promise<void> {
     await this.service.deleteArtistFromFavs(id, findFavs.userId);
   }
 
@@ -63,7 +64,7 @@ export class FavsController {
   async addAlbumToFavs(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() findFavs: FindFavsDto,
-  ) {
+  ): Promise<void> {
     await this.service.addAlbumToFavs(id, findFavs.userId);
   }
 
@@ -72,7 +73,7 @@ export class FavsController {
   async deleteAlbumFromFavs(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() findFavs: FindFavsDto,
-  ) {
+  ): Promise<void> {
     await this.service.deleteAlbumFromFavs(id, findFavs.userId);
   }
 }

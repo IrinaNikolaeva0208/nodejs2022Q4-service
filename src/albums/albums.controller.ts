@@ -13,24 +13,27 @@ import { AlbumService } from './albums.service';
 import { AlbumDto } from './dto/album.dto';
 import { Role } from 'src/auth/enums/roles.enum';
 import { Roles } from 'src/auth/decorators/roles';
+import { Album } from './entities/album.entity';
 
 @Controller('album')
 export class AlbumsController {
   constructor(private service: AlbumService) {}
 
   @Get()
-  async getAllEntities() {
+  async getAllEntities(): Promise<Album[]> {
     return this.service.findAll();
   }
 
   @Get(':id')
-  async getAlbumById(@Param('id', new ParseUUIDPipe()) id: string) {
+  async getAlbumById(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<Album> {
     return this.service.findOne(id);
   }
 
   @Roles(Role.Admin)
   @Post()
-  async createAlbum(@Body() createDto: AlbumDto) {
+  async createAlbum(@Body() createDto: AlbumDto): Promise<Album> {
     return this.service.create(createDto);
   }
 
@@ -39,14 +42,16 @@ export class AlbumsController {
   async updateAlbum(
     @Body() updateDto: AlbumDto,
     @Param('id', new ParseUUIDPipe()) id: string,
-  ) {
+  ): Promise<Album> {
     return this.service.update(id, updateDto);
   }
 
   @Roles(Role.Admin)
   @Delete(':id')
   @HttpCode(204)
-  async deleteAlbum(@Param('id', new ParseUUIDPipe()) id: string) {
+  async deleteAlbum(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<void> {
     await this.service.delete(id);
   }
 }

@@ -11,16 +11,16 @@ export class AlbumService {
     private albumRepository: Repository<Album>,
   ) {}
 
-  async findAlbumToFavs(albumId: string) {
+  async findAlbumToFavs(albumId: string): Promise<Album> {
     const album = await this.albumRepository.findOneBy({ id: albumId });
     return album;
   }
 
-  async findAll() {
+  async findAll(): Promise<Album[]> {
     return await this.albumRepository.find();
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<Album> {
     const albumToGet = await this.albumRepository.findOne({
       where: { id: id },
     });
@@ -30,12 +30,12 @@ export class AlbumService {
     throw new NotFoundException('Album not found');
   }
 
-  async create(dto: AlbumDto) {
+  async create(dto: AlbumDto): Promise<Album> {
     const createdAlbum = this.albumRepository.create(dto);
     return await this.albumRepository.save(createdAlbum);
   }
 
-  async update(id: string, dto: AlbumDto) {
+  async update(id: string, dto: AlbumDto): Promise<Album> {
     const albumToUpdate = await this.albumRepository.findOne({
       where: { id: id },
     });
@@ -48,7 +48,7 @@ export class AlbumService {
     throw new NotFoundException('Album not found');
   }
 
-  async delete(id: string) {
+  async delete(id: string): Promise<void> {
     const deleteAlbumResult = await this.albumRepository.delete(id);
     if (!deleteAlbumResult.affected)
       throw new NotFoundException('Album not found');

@@ -1,10 +1,5 @@
 import * as dotenv from 'dotenv';
 import { DataSource, DataSourceOptions } from 'typeorm';
-import { User } from 'src/users/entities/user.entity';
-import { Artist } from 'src/artists/entities/artist.entity';
-import { Track } from 'src/tracks/entities/track.entity';
-import { Album } from 'src/albums/entities/album.entity';
-import { Favourites } from 'src/favourites/entities/favs.entity';
 
 dotenv.config();
 

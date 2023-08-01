@@ -12,7 +12,10 @@ export class EmailConfirmationService {
     private mailService: MailService,
   ) {}
 
-  async sendEmailConfirmation(payload: UserPayload, email: string) {
+  async sendEmailConfirmation(
+    payload: UserPayload,
+    email: string,
+  ): Promise<void> {
     const verificationToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_VERIFICATION_SECRET_KEY,
       expiresIn: process.env.JWT_VERIFICATION_EXPIRE_TIME,
@@ -24,7 +27,7 @@ export class EmailConfirmationService {
     );
   }
 
-  async confirmEmail(user: any) {
+  async confirmEmail(user: UserPayload): Promise<void> {
     await this.userService.markEmailAsConfirmed(user.login);
   }
 }

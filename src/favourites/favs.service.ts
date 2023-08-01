@@ -16,19 +16,19 @@ export class FavsService {
     private trackService: TrackService,
   ) {}
 
-  async createNewFavs() {
+  async createNewFavs(): Promise<Favourites> {
     const newFavs = this.favsRepository.create();
     return await this.favsRepository.save(newFavs);
   }
 
-  async findAllFavs(userId: string) {
+  async findAllFavs(userId: string): Promise<Favourites> {
     return await this.favsRepository.findOne({
       where: { user: { id: userId } },
       relations: { artists: true, albums: true, tracks: true },
     });
   }
 
-  async addAlbumToFavs(albumId: string, userId: string) {
+  async addAlbumToFavs(albumId: string, userId: string): Promise<void> {
     const favs = await this.findAllFavs(userId);
     const album = await this.albumService.findAlbumToFavs(albumId);
     if (!album)
@@ -44,7 +44,7 @@ export class FavsService {
     );
   }
 
-  async deleteAlbumFromFavs(albumId: string, userId: string) {
+  async deleteAlbumFromFavs(albumId: string, userId: string): Promise<void> {
     const favs = await this.findAllFavs(userId);
     const album = await this.albumService.findAlbumToFavs(albumId);
     if (!album)
@@ -58,7 +58,7 @@ export class FavsService {
     );
   }
 
-  async addArtistToFavs(artistId: string, userId: string) {
+  async addArtistToFavs(artistId: string, userId: string): Promise<void> {
     const favs = await this.findAllFavs(userId);
     const artist = await this.artistService.findArtistToFavs(artistId);
     if (!artist)
@@ -74,7 +74,7 @@ export class FavsService {
     );
   }
 
-  async deleteArtistFromFavs(artistId: string, userId: string) {
+  async deleteArtistFromFavs(artistId: string, userId: string): Promise<void> {
     const favs = await this.findAllFavs(userId);
     const artist = await this.artistService.findArtistToFavs(artistId);
     if (!artist)
@@ -88,7 +88,7 @@ export class FavsService {
     );
   }
 
-  async addTrackToFavs(trackId: string, userId: string) {
+  async addTrackToFavs(trackId: string, userId: string): Promise<void> {
     const favs = await this.findAllFavs(userId);
     const track = await this.trackService.findTrackToFavs(trackId);
     if (!track)
@@ -104,7 +104,7 @@ export class FavsService {
     );
   }
 
-  async deleteTrackFromFavs(trackId: string, userId: string) {
+  async deleteTrackFromFavs(trackId: string, userId: string): Promise<void> {
     const favs = await this.findAllFavs(userId);
     const track = await this.trackService.findTrackToFavs(trackId);
     if (!track)

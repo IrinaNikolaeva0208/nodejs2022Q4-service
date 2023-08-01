@@ -9,7 +9,7 @@ export class MailService {
     userLogin: string,
     userEmail: string,
     token: string,
-  ) {
+  ): Promise<void> {
     const url = `${process.env.EMAIL_CONFIRMATION_URL}/auth/confirm?token=${token}`;
 
     await this.mailerService.sendMail({
