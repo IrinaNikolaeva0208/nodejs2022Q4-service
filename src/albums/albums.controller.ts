@@ -8,6 +8,7 @@ import {
   Delete,
   HttpCode,
   ParseUUIDPipe,
+  Query,
 } from '@nestjs/common';
 import { AlbumService } from './albums.service';
 import { AlbumDto } from './dto/album.dto';
@@ -22,6 +23,11 @@ export class AlbumsController {
   @Get()
   async getAllEntities(): Promise<Album[]> {
     return this.service.findAll();
+  }
+
+  @Get('search')
+  async getAlbumsByName(@Query('name') name: string): Promise<Album[]> {
+    return this.service.findByName(name);
   }
 
   @Get(':id')

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Album } from './entities/album.entity';
 import { AlbumDto } from './dto/album.dto';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
@@ -18,6 +18,12 @@ export class AlbumService {
 
   async findAll(): Promise<Album[]> {
     return await this.albumRepository.find();
+  }
+
+  async findByName(name: string): Promise<Album[]> {
+    return await this.albumRepository.find({
+      where: { name: Like(`%${name}%`) },
+    });
   }
 
   async findOne(id: string): Promise<Album> {

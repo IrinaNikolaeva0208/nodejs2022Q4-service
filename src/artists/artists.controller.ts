@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Param,
   Body,
+  Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { ArtistService } from './artists.service';
@@ -30,6 +31,12 @@ export class ArtistsController {
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<Artist> {
     return this.service.findOne(id);
+  }
+
+  @Get('search')
+  async getArtistsByName(@Query('name') name: string): Promise<Artist[]> {
+    console.log(name, 11);
+    return this.service.findByName(name);
   }
 
   @Roles(Role.Admin)

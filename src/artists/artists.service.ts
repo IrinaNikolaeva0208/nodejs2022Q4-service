@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Artist } from './entities/artist.entity';
 import { ArtistDto } from './dto/artist.dto';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
@@ -18,6 +18,12 @@ export class ArtistService {
 
   async findAll(): Promise<Artist[]> {
     return await this.artistRepository.find();
+  }
+
+  async findByName(name: string): Promise<Artist[]> {
+    return await this.artistRepository.find({
+      where: { name: Like(`%${name}%`) },
+    });
   }
 
   async findOne(id: string): Promise<Artist> {

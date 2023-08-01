@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Track } from './entities/track.entity';
 import { TrackDto } from './dto/track.dto';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
@@ -18,6 +18,12 @@ export class TrackService {
 
   async findAll(): Promise<Track[]> {
     return await this.trackRepository.find();
+  }
+
+  async findByName(name: string): Promise<Track[]> {
+    return await this.trackRepository.find({
+      where: { name: Like(`%${name}%`) },
+    });
   }
 
   async findOne(id: string): Promise<Track> {

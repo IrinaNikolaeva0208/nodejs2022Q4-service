@@ -8,6 +8,7 @@ import {
   Body,
   HttpCode,
   ParseUUIDPipe,
+  Query,
 } from '@nestjs/common';
 import { TrackService } from './tracks.service';
 import { TrackDto } from './dto/track.dto';
@@ -22,6 +23,11 @@ export class TracksController {
   @Get()
   async getAllTracks(): Promise<Track[]> {
     return this.service.findAll();
+  }
+
+  @Get('search')
+  async getTracksByName(@Query('name') name: string): Promise<Track[]> {
+    return this.service.findByName(name);
   }
 
   @Get(':id')
