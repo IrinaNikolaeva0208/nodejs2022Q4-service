@@ -1,6 +1,5 @@
 import { Album } from 'src/albums/entities/album.entity';
 import { Artist } from 'src/artists/entities/artist.entity';
-import { Favourites } from 'src/favourites/entities/favs.entity';
 import {
   Entity,
   Column,
@@ -8,21 +7,27 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
 export class Track {
+  @ApiProperty()
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @ApiProperty()
   @Column()
   name: string;
 
+  @ApiProperty()
   @Column()
   duration: number;
 
+  @ApiProperty()
   @Column({ nullable: true })
   artistId: string | null;
 
+  @ApiProperty()
   @Column({ nullable: true })
   albumId: string | null;
 

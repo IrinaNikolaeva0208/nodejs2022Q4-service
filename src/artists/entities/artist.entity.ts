@@ -1,23 +1,19 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  OneToMany,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { Track } from 'src/tracks/entities/track.entity';
 import { Album } from 'src/albums/entities/album.entity';
-import { Favourites } from 'src/favourites/entities/favs.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
 export class Artist {
+  @ApiProperty()
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @ApiProperty()
   @Column()
   name: string;
 
+  @ApiProperty()
   @Column()
   grammy: boolean;
 

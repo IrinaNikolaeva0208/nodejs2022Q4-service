@@ -10,20 +10,25 @@ import {
   ManyToMany,
   JoinTable,
 } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
 export class Favourites {
+  @ApiProperty()
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @ApiProperty()
   @ManyToMany(() => Track)
   @JoinTable()
   tracks: Track[];
 
+  @ApiProperty()
   @ManyToMany(() => Artist)
   @JoinTable()
   artists: Artist[];
 
+  @ApiProperty()
   @ManyToMany(() => Album)
   @JoinTable()
   albums: Album[];

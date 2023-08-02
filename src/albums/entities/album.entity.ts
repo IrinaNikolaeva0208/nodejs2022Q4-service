@@ -8,19 +8,23 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Track } from 'src/tracks/entities/track.entity';
-import { Favourites } from 'src/favourites/entities/favs.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
 export class Album {
+  @ApiProperty()
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @ApiProperty()
   @Column()
   name: string;
 
+  @ApiProperty()
   @Column()
   year: number;
 
+  @ApiProperty()
   @Column({ nullable: true })
   artistId: string | null;
 

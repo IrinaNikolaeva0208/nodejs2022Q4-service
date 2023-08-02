@@ -15,10 +15,28 @@ import { Roles } from 'src/auth/decorators/roles';
 import { Favourites } from './entities/favs.entity';
 import { Request } from 'express';
 import { UserPayload } from 'src/auth/types/userPayload';
+import {
+  ApiTags,
+  ApiNotFoundResponse,
+  ApiUnauthorizedResponse,
+  ApiBadRequestResponse,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiUnprocessableEntityResponse,
+  ApiNoContentResponse,
+  ApiForbiddenResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+
+@ApiBearerAuth()
+@ApiTags('favourites')
 @Controller('favs')
 export class FavsController {
   constructor(private service: FavsService) {}
 
+  @ApiOkResponse({ description: 'Successful operation', type: Favourites })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Operation forbidden' })
   @Roles(Role.User)
   @Get()
   async getFavs(
@@ -31,6 +49,11 @@ export class FavsController {
     );
   }
 
+  @ApiCreatedResponse({ description: 'Successfully added to favourites' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiBadRequestResponse({ description: 'Invalid id' })
+  @ApiUnprocessableEntityResponse({ description: 'Track does not exist' })
+  @ApiForbiddenResponse({ description: 'Operation forbidden' })
   @Roles(Role.User)
   @Post('track/:id')
   async addTrackToFavs(
@@ -45,6 +68,11 @@ export class FavsController {
     );
   }
 
+  @ApiNoContentResponse({ description: 'Successfully deleted from favourites' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiBadRequestResponse({ description: 'Invalid id' })
+  @ApiNotFoundResponse({ description: 'Track is not favourite' })
+  @ApiForbiddenResponse({ description: 'Operation forbidden' })
   @Roles(Role.User)
   @Delete('track/:id')
   async deleteTrackFromFavs(
@@ -59,6 +87,11 @@ export class FavsController {
     );
   }
 
+  @ApiCreatedResponse({ description: 'Successfully added to favourites' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiBadRequestResponse({ description: 'Invalid id' })
+  @ApiUnprocessableEntityResponse({ description: 'Artist does not exist' })
+  @ApiForbiddenResponse({ description: 'Operation forbidden' })
   @Roles(Role.User)
   @Post('artist/:id')
   async addArtistToFavs(
@@ -73,6 +106,11 @@ export class FavsController {
     );
   }
 
+  @ApiNoContentResponse({ description: 'Successfully deleted from favourites' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiBadRequestResponse({ description: 'Invalid id' })
+  @ApiNotFoundResponse({ description: 'Artist is not favourite' })
+  @ApiForbiddenResponse({ description: 'Operation forbidden' })
   @Roles(Role.User)
   @Delete('artist/:id')
   async deleteArtistFromFavs(
@@ -87,6 +125,11 @@ export class FavsController {
     );
   }
 
+  @ApiCreatedResponse({ description: 'Successfully added to favourites' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiBadRequestResponse({ description: 'Invalid id' })
+  @ApiUnprocessableEntityResponse({ description: 'Album does not exist' })
+  @ApiForbiddenResponse({ description: 'Operation forbidden' })
   @Roles(Role.User)
   @Post('album/:id')
   async addAlbumToFavs(
@@ -101,6 +144,11 @@ export class FavsController {
     );
   }
 
+  @ApiNoContentResponse({ description: 'Successfully deleted from favourites' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiBadRequestResponse({ description: 'Invalid id' })
+  @ApiNotFoundResponse({ description: 'Album is not favourite' })
+  @ApiForbiddenResponse({ description: 'Operation forbidden' })
   @Roles(Role.User)
   @Delete('album/:id')
   async deleteAlbumFromFavs(
