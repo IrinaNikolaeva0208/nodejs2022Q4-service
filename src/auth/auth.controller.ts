@@ -6,7 +6,7 @@ import {
   HttpStatus,
   Request as Req,
   UseGuards,
-  Get,
+  Patch,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from 'src/users/dto/createUser.dto';
@@ -94,7 +94,7 @@ export class AuthController {
   @ApiForbiddenResponse({ description: 'Operation forbidden' })
   @Public()
   @UseGuards(JwtConfirmGuard)
-  @Get('confirm')
+  @Patch('confirm')
   async confirmUserEmail(@Req() req: Request): Promise<GetTokensResponse> {
     await this.emailConfirmationService.confirmEmail(req.user as UserPayload);
     return await this.authService.refreshTokens(req.user as UserPayload);
