@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsNumber, IsNotEmpty } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNotEmpty,
+  IsNumber,
+  IsUUID,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class TrackDto {
@@ -7,15 +13,20 @@ export class TrackDto {
   @IsNotEmpty()
   name: string;
 
-  @ApiPropertyOptional({ type: String })
-  @IsOptional()
+  @ApiProperty({ type: String })
   @IsString()
-  artistId: string | null;
+  @IsOptional()
+  file?: string;
 
   @ApiPropertyOptional({ type: String })
   @IsOptional()
   @IsString()
-  albumId: string | null;
+  artistId?: string;
+
+  @ApiPropertyOptional({ type: String })
+  @IsOptional()
+  @IsUUID()
+  albumId?: string;
 
   @ApiProperty({ type: Number })
   @IsNumber()

@@ -24,6 +24,10 @@ export class Track {
   duration: number;
 
   @ApiProperty()
+  @Column()
+  file: string;
+
+  @ApiProperty()
   @Column({ nullable: true })
   artistId: string | null;
 

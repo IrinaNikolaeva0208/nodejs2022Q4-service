@@ -5,7 +5,7 @@ import { Repository, Like } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
-export class TrackService {
+export class TrackDatabaseService {
   constructor(
     @InjectRepository(Track)
     private trackRepository: Repository<Track>,

@@ -6,14 +6,13 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { LoggingService } from './logger/logging.service';
 import yaml from 'yamljs';
 import fs from 'node:fs';
-import { error } from 'node:console';
 
 dotenv.config();
 const PORT = process.env.PORT || 4000;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    logger: ['error'],
+    logger: [process.env.LOG_LEVEL as LogLevel],
   });
   app.useGlobalPipes(new ValidationPipe());
   app.enableCors();

@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Favourites } from './entities/favs.entity';
 import { ArtistService } from 'src/artists/artists.service';
 import { AlbumService } from 'src/albums/albums.service';
-import { TrackService } from 'src/tracks/tracks.service';
+import { TrackDatabaseService } from 'src/tracks/tracks.database.service';
 
 @Injectable()
 export class FavsService {
@@ -18,7 +18,7 @@ export class FavsService {
     private favsRepository: Repository<Favourites>,
     private albumService: AlbumService,
     private artistService: ArtistService,
-    private trackService: TrackService,
+    private trackService: TrackDatabaseService,
   ) {}
 
   async createNewFavs(): Promise<Favourites> {
